@@ -1,2 +1,9 @@
 ^discrtr\.Rproj$
 ^\.Rproj\.user$
+^procedure-to-create-package\.R$
+^_pkgdown\.yml$
+^docs$
+^pkgdown$
+^README\.Rmd$
+^LICENSE\.md$
+^data-raw$

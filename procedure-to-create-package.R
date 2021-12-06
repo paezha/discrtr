@@ -4,7 +4,7 @@
 
 # PACKAGE CREATION
 # Create package
-usethis::create_package("C:/Antonio/packages/spqdata")
+usethis::create_package("C:/Antonio/packages/discrtr")
 
 
 usethis::use_git()

@@ -1,10 +1,12 @@
 Package: discrtr
-Title: What the Package Does (One Line, Title Case)
+Title: A companion package for the book Introduction to Discrete Choice Analysis with `R`
 Version: 0.0.0.9000
 Authors@R: 
-    person("First", "Last", , "first.last@example.com", role = c("aut", "cre"),
-           comment = c(ORCID = "YOUR-ORCID-ID"))
-Description: What the package does (one paragraph).
+    c(person("Antonio", "Páez", "paezha@mcmaster.ca", role = c("aut", "cre"),
+           comment = c(ORCID = "0000-0001-6912-9919")),
+           person("Geneviève", "Boisjoly", "gboisjoly@polymtl.ca", role = c("aut"),
+           comment = c(ORCID = "0000-0001-5375-7750")))
+Description: This package includes data files and supporting materials for the book.
 License: MIT + file LICENSE
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)

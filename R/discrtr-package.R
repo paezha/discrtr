@@ -96,7 +96,7 @@ NULL
 #' @keywords datasets
 #' @name mc_commute_wide
 #' @usage data(mc_commute_wide)
-#' @source Whalen, K. E., PÃ¡ez, A., & Carrasco, J. A. (2013). Mode choice of university students commuting to school and the role of active travel. Journal of Transport Geography, 31, 132-142. (https://doi.org/10.1016/j.jtrangeo.2013.06.008)
+#' @source Whalen, K. E., P\'{a}ez, A., & Carrasco, J. A. (2013). Mode choice of university students commuting to school and the role of active travel. Journal of Transport Geography, 31, 132-142. (https://doi.org/10.1016/j.jtrangeo.2013.06.008)
 #' @examples
 #'  data(mc_commute_wide)
 #'  summary(mc_commute_wide$choice)
@@ -180,7 +180,7 @@ NULL
 #' @keywords datasets
 #' @name mc_commute_long
 #' @usage data(mc_commute_long)
-#' @source Whalen, K. E., PÃ¡ez, A., & Carrasco, J. A. (2013). Mode choice of university students commuting to school and the role of active travel. Journal of Transport Geography, 31, 132-142. (https://doi.org/10.1016/j.jtrangeo.2013.06.008)
+#' @source Whalen, K. E., P\'{a}ez, A., & Carrasco, J. A. (2013). Mode choice of university students commuting to school and the role of active travel. Journal of Transport Geography, 31, 132-142. (https://doi.org/10.1016/j.jtrangeo.2013.06.008)
 #' @examples
 #'  data(mc_commute_long)
 #'  library(dfidx)
@@ -240,7 +240,7 @@ NULL
 #' @keywords datasets
 #' @name mc_commute.csv
 #' @usage data(mc_commute_long)
-#' @source Whalen, K. E., PÃ¡ez, A., & Carrasco, J. A. (2013). Mode choice of university students commuting to school and the role of active travel. Journal of Transport Geography, 31, 132-142. (https://doi.org/10.1016/j.jtrangeo.2013.06.008)
+#' @source Whalen, K. E., P\'{a}ez, A., & Carrasco, J. A. (2013). Mode choice of university students commuting to school and the role of active travel. Journal of Transport Geography, 31, 132-142. (https://doi.org/10.1016/j.jtrangeo.2013.06.008)
 #' @examples
 #'  library(readr)
 #'  mc_commute <- read_csv(system.file("extdata", "mc_commute.csv", package = "discrtr"))

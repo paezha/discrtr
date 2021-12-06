@@ -4,9 +4,9 @@
 \name{discrtr-package}
 \alias{discrtr}
 \alias{discrtr-package}
-\title{discrtr: What the Package Does (One Line, Title Case)}
+\title{discrtr: A companion package for the book Introduction to Discrete Choice Analysis with `R`}
 \description{
-What the package does (one paragraph).
+This package includes data files and supporting materials for the book.
 }
 \seealso{
 Useful links:
@@ -17,7 +17,12 @@ Useful links:
 
 }
 \author{
-\strong{Maintainer}: First Last \email{first.last@example.com} (\href{https://orcid.org/YOUR-ORCID-ID}{ORCID})
+\strong{Maintainer}: Antonio paezha@mcmaster.ca Páez (\href{https://orcid.org/0000-0001-6912-9919}{ORCID})
+
+Authors:
+\itemize{
+  \item Geneviève gboisjoly@polymtl.ca Boisjoly (\href{https://orcid.org/0000-0001-5375-7750}{ORCID})
+}
 
 }
 \keyword{internal}

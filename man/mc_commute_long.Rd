@@ -71,7 +71,7 @@ An indexed data frame of class dfidx with 5500 rows and 62 variables:
 }
 }
 \source{
-Whalen, K. E., PÃ¡ez, A., & Carrasco, J. A. (2013). Mode choice of university students commuting to school and the role of active travel. Journal of Transport Geography, 31, 132-142. (https://doi.org/10.1016/j.jtrangeo.2013.06.008)
+Whalen, K. E., P\'{a}ez, A., & Carrasco, J. A. (2013). Mode choice of university students commuting to school and the role of active travel. Journal of Transport Geography, 31, 132-142. (https://doi.org/10.1016/j.jtrangeo.2013.06.008)
 }
 \usage{
 data(mc_commute_long)

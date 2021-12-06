@@ -6,7 +6,9 @@
 <!-- badges: start -->
 <!-- badges: end -->
 
-The goal of discrtr is to …
+Package {discrtr} is a companion to the book Introduction to Discrete
+Choice Analysis with R. It includes data sets and other supporting
+materials used in the book.
 
 ## Installation
 
@@ -20,36 +22,35 @@ devtools::install_github("paezha/discrtr")
 
 ## Example
 
-This is a basic example which shows you how to solve a common problem:
+One data set included in the package relates to commuting in a
+university setting. Analysis of this data was reported by Whalen,
+P'{a}ez, and Carrasco
+[(2012)](https://doi.org/10.1016/j.jtrangeo.2013.06.008). The wide
+version of the data table can be loaded as follows:
 
 ``` r
 library(discrtr)
-## basic example code
+data("mc_commute_wide")
 ```
 
-What is special about using `README.Rmd` instead of just `README.md`?
-You can include R chunks like so:
+This is a quick summary of the travel time variables in the table:
 
 ``` r
-summary(cars)
-#>      speed           dist       
-#>  Min.   : 4.0   Min.   :  2.00  
-#>  1st Qu.:12.0   1st Qu.: 26.00  
-#>  Median :15.0   Median : 36.00  
-#>  Mean   :15.4   Mean   : 42.98  
-#>  3rd Qu.:19.0   3rd Qu.: 56.00  
-#>  Max.   :25.0   Max.   :120.00
+library(dplyr)
+mc_commute_wide %>% 
+  dplyr::select(starts_with("time.")) %>%
+  summary()
+#>    time.Cycle        time.Walk        time.HSR         time.Car    
+#>  Min.   : 0.3106   Min.   : 1.00   Min.   :  1.00   Min.   : 1.00  
+#>  1st Qu.: 2.9141   1st Qu.:10.00   1st Qu.:  4.00   1st Qu.: 5.00  
+#>  Median : 4.3711   Median :15.00   Median :  8.00   Median :10.00  
+#>  Mean   : 5.4278   Mean   :16.09   Mean   : 16.82   Mean   :12.86  
+#>  3rd Qu.: 6.2112   3rd Qu.:20.00   3rd Qu.: 20.00   3rd Qu.:20.00  
+#>  Max.   :45.0000   Max.   :62.11   Max.   :120.00   Max.   :72.00  
+#>  NA's   :997       NA's   :513     NA's   :54       NA's   :622
 ```
 
-You’ll still need to render `README.Rmd` regularly, to keep `README.md`
-up-to-date. `devtools::build_readme()` is handy for this. You could also
-use GitHub Actions to re-render `README.Rmd` every time you push. An
-example workflow can be found here:
-<https://github.com/r-lib/actions/tree/v1/examples>.
-
-You can also embed plots, for example:
-
-<img src="man/figures/README-pressure-1.png" width="100%" />
-
-In that case, don’t forget to commit and push the resulting figure
-files, so they display on GitHub and CRAN.
+There are four modes of transportation in this data set, but not all
+modes were available to every respondent, hence the NA’s. A missing
+value for any of the time variables indicates that the mode was not part
+of the choice set for the corresponding traveller.

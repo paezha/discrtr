@@ -20,7 +20,7 @@ knitr::opts_chunk$set(
 <!-- badges: start -->
 <!-- badges: end -->
 
-The goal of discrtr is to ...
+Package {discrtr} is a companion to the book Introduction to Discrete Choice Analysis with R. It includes data sets and other supporting materials used in the book.
 
 ## Installation
 
@@ -33,25 +33,20 @@ devtools::install_github("paezha/discrtr")
 
 ## Example
 
-This is a basic example which shows you how to solve a common problem:
+One data set included in the package relates to commuting in a university setting. Analysis of this data was reported by Whalen, P\'{a}ez, and Carrasco [(2012)](https://doi.org/10.1016/j.jtrangeo.2013.06.008). The wide version of the data table can be loaded as follows:
 
-```{r example}
+```{r load-data}
 library(discrtr)
-## basic example code
+data("mc_commute_wide")
 ```
 
-What is special about using `README.Rmd` instead of just `README.md`? You can include R chunks like so:
+This is a quick summary of the travel time variables in the table:
 
-```{r cars}
-summary(cars)
+```{r summary, message=FALSE}
+library(dplyr)
+mc_commute_wide %>% 
+  dplyr::select(starts_with("time.")) %>%
+  summary()
 ```
 
-You'll still need to render `README.Rmd` regularly, to keep `README.md` up-to-date. `devtools::build_readme()` is handy for this. You could also use GitHub Actions to re-render `README.Rmd` every time you push. An example workflow can be found here: <https://github.com/r-lib/actions/tree/v1/examples>.
-
-You can also embed plots, for example:
-
-```{r pressure, echo = FALSE}
-plot(pressure)
-```
-
-In that case, don't forget to commit and push the resulting figure files, so they display on GitHub and CRAN.
+There are four modes of transportation in this data set, but not all modes were available to every respondent, hence the NA's. A missing value for any of the time variables indicates that the mode was not part of the choice set for the corresponding traveller.

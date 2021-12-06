@@ -2,9 +2,15 @@ Package: discrtr
 Title: A companion package for the book Introduction to Discrete Choice Analysis with `R`
 Version: 0.0.0.9000
 Authors@R: 
-    c(person("Antonio", "Páez", "paezha@mcmaster.ca", role = c("aut", "cre"),
+    c(person(given = "Antonio",
+           family = "Paez",
+           role = c("aut", "cre"),
+           email = "paezha@mcmaster.ca",
            comment = c(ORCID = "0000-0001-6912-9919")),
-           person("Geneviève", "Boisjoly", "gboisjoly@polymtl.ca", role = c("aut"),
+      person(given = "Genevieve",
+           family = "Boisjoly",
+           role = c("aut"),
+           email = "gboisjoly@polymtl.ca",
            comment = c(ORCID = "0000-0001-5375-7750")))
 Description: This package includes data files and supporting materials for the book.
 License: MIT + file LICENSE

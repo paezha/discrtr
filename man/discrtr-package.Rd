@@ -17,11 +17,11 @@ Useful links:
 
 }
 \author{
-\strong{Maintainer}: Antonio paezha@mcmaster.ca Páez (\href{https://orcid.org/0000-0001-6912-9919}{ORCID})
+\strong{Maintainer}: Antonio Paez \email{paezha@mcmaster.ca} (\href{https://orcid.org/0000-0001-6912-9919}{ORCID})
 
 Authors:
 \itemize{
-  \item Geneviève gboisjoly@polymtl.ca Boisjoly (\href{https://orcid.org/0000-0001-5375-7750}{ORCID})
+  \item Genevieve Boisjoly \email{gboisjoly@polymtl.ca} (\href{https://orcid.org/0000-0001-5375-7750}{ORCID})
 }
 
 }

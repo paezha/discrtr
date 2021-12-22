@@ -1,0 +1,111 @@
+---
+title: "R Notebook"
+---
+
+## Introduction
+
+In this notebook we create an object with boundaries by type for Hamilton.
+
+## Preliminaries
+
+Clear environment:
+```{r}
+rm(list = ls())
+```
+
+Load packages used in the notebook:
+```{r message = FALSE}
+#library(cancensus)
+#library(disk.frame)
+#library(pycno)
+#library(readr)
+#library(r5r) # the r5r package requires Java Development Kit version 11, which can be downloaded from https://www.oracle.com/java/technologies/javase-jdk11-downloads.html
+library(sf)
+library(smoothr)
+library(tidyverse)
+#library(tmap)
+#library(tmaptools)
+```
+
+### Hamilton Ward boundaries
+
+Open Data Hamilton. Read:
+```{r}
+wards <- st_read("input-data-files/Ward_Boundaries.shp")
+```
+
+Add label for type of ward (the urban/suburban/rural classification is by the planning teams; see https://www.hamilton.ca/develop-property/planning-applications/development-applications-mapping)
+```{r}
+wards$Type <- c("Urban",
+                "Urban",
+                "Urban",
+                "Urban",
+                "Urban",
+                "Suburban",
+                "Suburban",
+                "Suburban",
+                "Suburban",
+                "Suburban",
+                "Suburban",
+                "Suburban",
+                "Suburban",
+                "Suburban",
+                "Suburban")
+```
+
+Merge boundaries by type:
+```{r}
+wards <- wards %>% 
+  group_by(Type) %>%
+  summarize()
+```
+
+```{r}
+ggplot(wards) + 
+  geom_sf(aes(fill = Type))
+```
+
+Read rural boundary:
+```{r}
+rural <- st_read("input-data-files/Rural_Boundary.shp")
+rural <- rural %>%
+  transmute(Type = "Rural")
+```
+
+Plot rural boundary:
+```{r}
+ggplot(rural) +
+  geom_sf()
+```
+
+Obtain difference between urban and suburban regions and rural boundary:
+```{r}
+st_difference(wards, rural) %>%
+  ggplot() +
+  geom_sf(aes(fill = Type))
+```
+
+Notice the detritus after the difference. Drop crumbs to obtain a cleaner version of the boundaries:
+```{r}
+sub_urban <- st_difference(wards, rural) %>%
+  transmute(Type) %>%
+  smoothr::drop_crumbs(threshold = 5000)
+
+ggplot(sub_urban) +
+  geom_sf(aes(fill = Type))
+```
+
+Bind the boundaries with all three urban types:
+```{r}
+urban_types <- rbind(sub_urban,
+                     rural)
+
+ggplot(urban_types) +
+  geom_sf(aes(fill = Type))
+```
+
+Save data:
+```{r}
+usethis::use_data(urban_types)
+```
+

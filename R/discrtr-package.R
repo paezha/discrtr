@@ -246,7 +246,7 @@ NULL
 #'  mc_commute <- read_csv(system.file("extdata", "mc_commute.csv", package = "discrtr"))
 NULL
 
-#' Urban types
+#' Hamilton City boundaries and urban types
 #'
 #' Classification of regions by type: urban, suburban, and rural. This is based on the rural boundaries of the city, and the planning regions.
 #'

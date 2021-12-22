@@ -3,7 +3,7 @@
 \docType{data}
 \name{urban_types}
 \alias{urban_types}
-\title{Urban types}
+\title{Hamilton City boundaries and urban types}
 \format{
 An object of class \code{sf} (inherits from \code{tbl_df}, \code{tbl}, \code{data.frame}) with 3 rows and 2 columns.
 }

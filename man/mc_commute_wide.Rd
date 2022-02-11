@@ -33,7 +33,7 @@ A data frame with 1375 rows and 74 variables:
 \item{vehind}{Indicator variable for having individual access to a private car (i.e., car not shared with other household members): Yes/No}
 \item{gender}{Female/Male}
 \item{age}{Age in years}
-\item{shared}{Indicator variable for living in shared accommodations}
+\item{shared}{Indicator variable for a student living in a rental property with other students, i.e., living in shared accommodations}
 \item{family}{Indicator variable for living in family home}
 \item{child}{Indicator variable for presence of dependent minors in household: Yes/No}
 \item{street_density}{Street density in the dissemination area of the place of residence in $km/km^2$}

@@ -25,7 +25,7 @@ An comma separated text file :
 \item{gender}{Indicator variable for gender: (1) Female, (0) Male}
 \item{age}{Age in years}
 \item{solo}{Indicator variable for living in solo accommodations: (1) Yes, (0) No}
-\item{shared}{Indicator variable for living in shared accommodations: (1) Yes, (0) No}
+\item{shared}{Indicator variable for a student living in a rental property with other students, i.e., shared accommodations: (1) Yes, (0) No}
 \item{family}{Indicator variable for living in family home: (1) Yes, (0) No}
 \item{child}{Indicator variable for presence of dependent minors in household: (1) Yes, (0) No}
 \item{primary_caregiver}{Indicator variable for being the primary caregiver of dependent minors in household: (1) Yes, (0) No, (100000) No dependent minors in household}

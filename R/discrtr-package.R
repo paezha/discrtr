@@ -40,7 +40,7 @@ NULL
 #'   \item{transfer.Car}{Number of transfers when travelling by transit}
 #'   \item{parking}{Indicator variable for holding a university parking permit: Yes/No}
 #'   \item{vehind}{Indicator variable for having individual access to a private car (i.e., car not shared with other household members): Yes/No}
-#'   \item{gender}{Female/Male}
+#'   \item{sex}{Woman/Man}
 #'   \item{age}{Age in years}
 #'   \item{shared}{Indicator variable for a student living in a rental property with other students, i.e., living in shared accommodations}
 #'   \item{family}{Indicator variable for living in family home}
@@ -117,7 +117,7 @@ NULL
 #'   \item{choice}{Mode of transportation chosen: Cycle, Walk, HSR (local transit), Car}
 #'   \item{parking}{Indicator variable for holding a university parking permit: Yes/No}
 #'   \item{vehind}{Indicator variable for having individual access to a private car (i.e., car not shared with other household members): Yes/No}
-#'   \item{gender}{Female/Male}
+#'   \item{sex}{Woman/Man}
 #'   \item{age}{Age in years}
 #'   \item{shared}{Indicator variable for Indicator variable for a student living in a rental property with other students, i.e., living in shared accommodations}
 #'   \item{family}{Indicator variable for living in family home}
@@ -213,7 +213,7 @@ NULL
 #'   \item{parking}{Indicator variable for holding a university parking permit: (1) Yes, (0) No}
 #'   \item{vehind}{Indicator variable for having individual access to a private car (i.e., car not shared with other household members): (1) Yes, (0) No}
 #'   \item{owncycle}{Indicator variable for owning a bicycle: (1) Yes, (0) No}
-#'   \item{gender}{Indicator variable for gender: (1) Female, (0) Male}
+#'   \item{sex}{Indicator variable for sex: (1) Woman, (0) Man}
 #'   \item{age}{Age in years}
 #'   \item{solo}{Indicator variable for living in solo accommodations: (1) Yes, (0) No}
 #'   \item{shared}{Indicator variable for a student living in a rental property with other students, i.e., shared accommodations: (1) Yes, (0) No}

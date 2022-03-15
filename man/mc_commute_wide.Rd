@@ -31,7 +31,7 @@ A data frame with 1375 rows and 74 variables:
 \item{transfer.Car}{Number of transfers when travelling by transit}
 \item{parking}{Indicator variable for holding a university parking permit: Yes/No}
 \item{vehind}{Indicator variable for having individual access to a private car (i.e., car not shared with other household members): Yes/No}
-\item{gender}{Female/Male}
+\item{sex}{Woman/Man}
 \item{age}{Age in years}
 \item{shared}{Indicator variable for a student living in a rental property with other students, i.e., living in shared accommodations}
 \item{family}{Indicator variable for living in family home}

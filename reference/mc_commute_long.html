@@ -80,8 +80,8 @@ a choice situation.</p>
 <dt>vehind</dt>
 <dd><p>Indicator variable for having individual access to a private car (i.e., car not shared with other household members): Yes/No</p></dd>
 
-<dt>gender</dt>
-<dd><p>Female/Male</p></dd>
+<dt>sex</dt>
+<dd><p>Woman/Man</p></dd>
 
 <dt>age</dt>
 <dd><p>Age in years</p></dd>
@@ -269,20 +269,20 @@ a choice situation.</p>
 <span class="r-msg co"><span class="r-pr">#&gt;</span>     filter</span>
 <span class="r-in"> <span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">mc_commute_long</span>, n <span class="op">=</span> <span class="fl">12</span><span class="op">)</span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;"># A tibble: 5,500 × 62</span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>         id choice parking vehind gender   age shared family child street_density</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  <span style="color: #BCBCBC;">*</span>   <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;lgl&gt;</span>  <span style="color: #949494; font-style: italic;">&lt;fct&gt;</span>   <span style="color: #949494; font-style: italic;">&lt;fct&gt;</span>  <span style="color: #949494; font-style: italic;">&lt;fct&gt;</span>  <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;fct&gt;</span>  <span style="color: #949494; font-style: italic;">&lt;fct&gt;</span>  <span style="color: #949494; font-style: italic;">&lt;fct&gt;</span>          <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 1</span>  5.67<span style="color: #949494;">e</span>8 FALSE  No      No     Male      21 Livin… No     No              14.4</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 2</span>  5.67<span style="color: #949494;">e</span>8 FALSE  No      No     Male      21 Livin… No     No              14.4</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 3</span>  5.67<span style="color: #949494;">e</span>8 TRUE   No      No     Male      21 Livin… No     No              14.4</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 4</span>  5.67<span style="color: #949494;">e</span>8 FALSE  No      No     Male      21 Livin… No     No              14.4</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 5</span>  5.67<span style="color: #949494;">e</span>8 FALSE  No      Yes    Male      23 No     No     No              19.5</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 6</span>  5.67<span style="color: #949494;">e</span>8 FALSE  No      Yes    Male      23 No     No     No              19.5</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 7</span>  5.67<span style="color: #949494;">e</span>8 TRUE   No      Yes    Male      23 No     No     No              19.5</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 8</span>  5.67<span style="color: #949494;">e</span>8 FALSE  No      Yes    Male      23 No     No     No              19.5</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 9</span>  5.67<span style="color: #949494;">e</span>8 FALSE  No      No     Male      20 No     Livin… No              13.6</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">10</span>  5.67<span style="color: #949494;">e</span>8 FALSE  No      No     Male      20 No     Livin… No              13.6</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">11</span>  5.67<span style="color: #949494;">e</span>8 TRUE   No      No     Male      20 No     Livin… No              13.6</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">12</span>  5.67<span style="color: #949494;">e</span>8 FALSE  No      No     Male      20 No     Livin… No              13.6</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>          id choice parking vehind sex     age shared family child street_density</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  <span style="color: #BCBCBC;">*</span>    <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;lgl&gt;</span>  <span style="color: #949494; font-style: italic;">&lt;fct&gt;</span>   <span style="color: #949494; font-style: italic;">&lt;fct&gt;</span>  <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;fct&gt;</span>  <span style="color: #949494; font-style: italic;">&lt;fct&gt;</span>  <span style="color: #949494; font-style: italic;">&lt;fct&gt;</span>          <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 1</span>   5.67<span style="color: #949494;">e</span>8 FALSE  No      No     Man      21 Livin… No     No              14.4</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 2</span>   5.67<span style="color: #949494;">e</span>8 FALSE  No      No     Man      21 Livin… No     No              14.4</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 3</span>   5.67<span style="color: #949494;">e</span>8 TRUE   No      No     Man      21 Livin… No     No              14.4</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 4</span>   5.67<span style="color: #949494;">e</span>8 FALSE  No      No     Man      21 Livin… No     No              14.4</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 5</span>   5.67<span style="color: #949494;">e</span>8 FALSE  No      Yes    Man      23 No     No     No              19.5</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 6</span>   5.67<span style="color: #949494;">e</span>8 FALSE  No      Yes    Man      23 No     No     No              19.5</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 7</span>   5.67<span style="color: #949494;">e</span>8 TRUE   No      Yes    Man      23 No     No     No              19.5</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 8</span>   5.67<span style="color: #949494;">e</span>8 FALSE  No      Yes    Man      23 No     No     No              19.5</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 9</span>   5.67<span style="color: #949494;">e</span>8 FALSE  No      No     Man      20 No     Livin… No              13.6</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">10</span>   5.67<span style="color: #949494;">e</span>8 FALSE  No      No     Man      20 No     Livin… No              13.6</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">11</span>   5.67<span style="color: #949494;">e</span>8 TRUE   No      No     Man      20 No     Livin… No              13.6</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">12</span>   5.67<span style="color: #949494;">e</span>8 FALSE  No      No     Man      20 No     Livin… No              13.6</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;"># … with 5,488 more rows, and 52 more variables: sidewalk_density &lt;dbl&gt;,</span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;">#   LAT &lt;dbl&gt;, LONG &lt;dbl&gt;, PersonalVehComf_SD &lt;dbl&gt;, PersonalVehComf_D &lt;dbl&gt;,</span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;">#   PersonalVehComf_A &lt;dbl&gt;, PersonalVehComf_SA &lt;dbl&gt;, Fun_SD &lt;dbl&gt;,</span></span>

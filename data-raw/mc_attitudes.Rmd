@@ -1,0 +1,119 @@
+---
+title: "R Notebook"
+---
+
+## Introduction
+
+In this notebook we prepare a data object with the table used in Páez, Antonio. "Mapping travelers’ attitudes: does space matter?." Journal of Transport Geography 26 (2013): 117-125.
+
+## Preliminaries
+
+Clear environment:
+```{r}
+rm(list = ls())
+```
+
+Load packages used in the notebook:
+```{r message = FALSE}
+library(readxl)
+library(tidyverse)
+#library(MASS)
+#library(reshape2)
+#library(plyr)
+#library(kableExtra)
+#library(gridExtra)
+```
+
+Load dataframe:
+```{r}
+mc_attitudes <- read_excel("input-data-files/Individual+DA Data+Built Environment.xls")
+```
+
+Convert to factors:
+```{r}
+mc_attitudes <- mc_attitudes %>%
+  transmute(id = ID,
+            choice = factor(MODE, 
+                            levels = c( "CAR", "HSR","WALK")),
+            LAT,
+            LONG,
+            license = factor(case_when(License == "YES" ~ "Yes",
+                                       License == "NO" ~ "No")),
+            vehicle = factor(case_when(Vehicle == "YES" ~ "Yes",
+                                       Vehicle == "NO" ~ "No")),
+            gender = factor(case_when(Gender == "FEMALE" ~ "Woman",
+                                      Gender == "MALE" ~ "Man")),
+            age = Age,
+            visa = factor(case_when(Visa == "CANADIAN" ~ "Domestic",
+                                    Visa == "INTERNATIONAL" ~ "International")),
+            living_arrangements = factor(case_when(Living == 1 ~ "With family/relatives",
+                                                  Living == 3 ~ "By myself",
+                                                  Living == 4 ~ "Off-campus shared accommodations")),
+            level = factor(case_when(Level == 1 ~ "UG I",
+                                     Level == 2 ~ "UG II",
+                                     Level == 3 ~ "UG III",
+                                     Level == 4 ~ "UG IV",
+                                     Level == 5 ~ "UG V",
+                                     Level == 6 ~ "Masters",
+                                     Level == 7 ~ "PhD",
+                                     Level == 8 ~ "Other",
+                                     Level == 9 ~ "Other")),
+            Community = factor(COMMUNITY, 
+                               levels = c("STRONGLY DISAGREE", "DISAGREE", "NEUTRAL", "AGREE", "STRONGLY AGREE"), 
+                               ordered = TRUE),
+            Active_Neighborhood = factor(ACTIVE_NEIGHBORHOOD, 
+                                 levels = c("STRONGLY DISAGREE", "DISAGREE", "NEUTRAL", "AGREE", "STRONGLY AGREE"), 
+                                 ordered = TRUE),
+            Neighbors = factor(NEIGHBORS, 
+                               levels = c("STRONGLY DISAGREE", "DISAGREE", "NEUTRAL", "AGREE", "STRONGLY AGREE"),
+                               ordered = TRUE),
+            Safe_Walk= factor(SAFE_WALK, 
+                              levels = c("STRONGLY DISAGREE", "DISAGREE", "NEUTRAL", "AGREE", "STRONGLY AGREE"),
+                              ordered = TRUE),
+            Shops_Important = factor(SHOPS_IMPORTANT, 
+                                     levels = c("STRONGLY DISAGREE", "DISAGREE", "NEUTRAL", "AGREE", "STRONGLY AGREE"), 
+                                     ordered = TRUE),
+            Travel_Alone = factor(TRAVEL_ALONE, 
+                                 levels = c("STRONGLY DISAGREE", "DISAGREE", "NEUTRAL", "AGREE", "STRONGLY AGREE"), 
+                                 ordered = TRUE),
+            DAUID,
+            Rate_Couple_Child = RateCoupleChild,
+            Rate_SW_Child = RateFemLone,
+            Rate_SM_Child = RateMaleLone,
+            Mean_Children = AvgChild,
+            Rate_Non_Canadian = RateNonCanadian,
+            Median_HH_Income = MedIncome,
+            Mean_HH_Income = MHI,
+            Rate_Unemployment = UnempRate,
+            Rate_1yr_Move = RateMob1Mover,
+            Rate_5yr_Move = RateMob5Mover,
+            Rate_Public = RatePublic,
+            Rate_Walk = RateWalk,
+            Rate_Cycle = RateCycle,
+            AREA = AREA_SQKM,
+            LUM,
+            SIDEWALK_DENSITY = SIDEWALK_D,
+            STREET_DENSITY = STREET_DEN,
+            INTERSECTION_DENSITY = INTER_DENS,
+            SF_P_RATIO,
+            EMPLOYMENT_DENSITY = EMPLOY_DEN,
+            POPULATION_DENSITY = POP_DENSIT) 
+```
+
+Scale income variables:
+```{r}
+mc_attitudes <- mc_attitudes %>% mutate(Median_HH_Income = Median_HH_Income/10000, 
+                                        Mean_HH_Income = Mean_HH_Income/10000)
+```
+
+Scale density variables:
+```{r}
+mc_attitudes <- mc_attitudes %>% mutate(EMPLOYMENT_DENSITY = EMPLOYMENT_DENSITY/10000, 
+                                        POPULATION_DENSITY = POPULATION_DENSITY/10000)
+```
+
+Save data:
+```{r}
+usethis::use_data(mc_attitudes)
+```
+

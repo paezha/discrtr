@@ -1,0 +1,88 @@
+---
+title: "R Notebook"
+---
+
+## Introduction
+
+In this notebook we prepare a data object with the table used in Lavery, T. A., Antonio Páez, and Pavlos S. Kanaroglou. "Driving out of choices: An investigation of transport modality in a university sample." Transportation research part A: policy and practice 57 (2013): 37-46.
+
+## Preliminaries
+
+Clear environment:
+```{r}
+rm(list = ls())
+```
+
+Load packages used in the notebook:
+```{r message = FALSE}
+library(readxl)
+library(tidyverse)
+#library(MASS)
+#library(reshape2)
+#library(plyr)
+#library(kableExtra)
+#library(gridExtra)
+```
+
+Load dataframe:
+```{r}
+mc_modality <- read_excel("input-data-files/Database+Geocodes.xlsx")
+### Hamilton Ward boundaries
+```
+
+Convert to factors:
+```{r}
+mc_modality <- mc_modality %>% 
+  select(-c(Longitude, Latitude, XUTM, YUTM)) %>%
+  rename(id = ID,
+         choice = MODE,
+         gender = Gender,
+         Community = COMMUNITY,
+         ActiveNeigh = ACTIVE_NEIGHBORHOOD,
+         Neighbors = NEIGHBORS,
+         Safe_Walk= SAFE_WALK,
+         Shops_Important = SHOPS_IMPORTANT,
+         TravelAlone = TRAVEL_ALONE) %>%
+  mutate(choice = case_when(choice == ""),
+         gender = case_when(gender == "FEMALE" ~ "Woman",
+                                                         gender == "MALE" ~ "Man"),
+                                      COMMUNITY = factor(COMMUNITY, 
+                                       levels = c("STRONGLY DISAGREE", "DISAGREE", "NEUTRAL", "AGREE", "STRONGLY AGREE"), ordered = TRUE),
+                    ActiveNeigh = factor(ActiveNeigh, 
+                                       levels = c("STRONGLY DISAGREE", "DISAGREE", "NEUTRAL", "AGREE", "STRONGLY AGREE"), ordered = TRUE),
+                    NEIGHBORS = factor(NEIGHBORS, 
+                                       levels = c("STRONGLY DISAGREE", "DISAGREE", "NEUTRAL", "AGREE", "STRONGLY AGREE"), ordered = TRUE),
+                    SAFE_WALK = factor(SAFE_WALK, 
+                                       levels = c("STRONGLY DISAGREE", "DISAGREE", "NEUTRAL", "AGREE", "STRONGLY AGREE"), ordered = TRUE),
+                    SHOPS_IMPORTANT = factor(SHOPS_IMPORTANT, 
+                                       levels = c("STRONGLY DISAGREE", "DISAGREE", "NEUTRAL", "AGREE", "STRONGLY AGREE"), ordered = TRUE),
+                    TRAVEL_ALONE = factor(TRAVEL_ALONE, 
+                                       levels = c("STRONGLY DISAGREE", "DISAGREE", "NEUTRAL", "AGREE", "STRONGLY AGREE"), ordered = TRUE),
+                    MODE = factor(MODE, 
+                                       levels = c("WALK", "HSR", "CAR")),
+                    Gender = factor(Gender, 
+                                       levels = c("FEMALE", "MALE")),
+                    License = factor(License, 
+                                       levels = c("YES", "NO")),
+                    Vehicle = factor(Vehicle, 
+                                       levels = c("YES", "NO")),
+                    Visa = factor(Visa, 
+                                       levels = c("CANADIAN", "INTERNATIONAL"))
+)
+```
+
+Scale income variables:
+```{r}
+mc_modality <- mc_modality %>% mutate(MedIncome = MedIncome/10000, MHI = MHI/10000)
+```
+
+Scale density variables:
+```{r}
+mc_modality <- mc_modality %>% mutate(EMPLOY_DEN = EMPLOY_DEN/10000, POP_DENSIT = POP_DENSIT/10000)
+```
+
+Save data:
+```{r}
+usethis::use_data(mc_modality)
+```
+

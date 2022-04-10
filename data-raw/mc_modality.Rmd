@@ -26,63 +26,160 @@ library(tidyverse)
 
 Load dataframe:
 ```{r}
-mc_modality <- read_excel("input-data-files/Database+Geocodes.xlsx")
-### Hamilton Ward boundaries
+mc_modality <- read_excel("input-data-files/Number_Alternatives.xlsx")
+geocodes <- read_excel("input-data-files/Database+Geocodes.xlsx")
 ```
 
-Convert to factors:
+Retrieve geocodes from file `Database+Geocodes.xlsx`:
 ```{r}
-mc_modality <- mc_modality %>% 
-  select(-c(Longitude, Latitude, XUTM, YUTM)) %>%
-  rename(id = ID,
-         choice = MODE,
-         gender = Gender,
-         Community = COMMUNITY,
-         ActiveNeigh = ACTIVE_NEIGHBORHOOD,
-         Neighbors = NEIGHBORS,
-         Safe_Walk= SAFE_WALK,
-         Shops_Important = SHOPS_IMPORTANT,
-         TravelAlone = TRAVEL_ALONE) %>%
-  mutate(choice = case_when(choice == ""),
-         gender = case_when(gender == "FEMALE" ~ "Woman",
-                                                         gender == "MALE" ~ "Man"),
-                                      COMMUNITY = factor(COMMUNITY, 
-                                       levels = c("STRONGLY DISAGREE", "DISAGREE", "NEUTRAL", "AGREE", "STRONGLY AGREE"), ordered = TRUE),
-                    ActiveNeigh = factor(ActiveNeigh, 
-                                       levels = c("STRONGLY DISAGREE", "DISAGREE", "NEUTRAL", "AGREE", "STRONGLY AGREE"), ordered = TRUE),
-                    NEIGHBORS = factor(NEIGHBORS, 
-                                       levels = c("STRONGLY DISAGREE", "DISAGREE", "NEUTRAL", "AGREE", "STRONGLY AGREE"), ordered = TRUE),
-                    SAFE_WALK = factor(SAFE_WALK, 
-                                       levels = c("STRONGLY DISAGREE", "DISAGREE", "NEUTRAL", "AGREE", "STRONGLY AGREE"), ordered = TRUE),
-                    SHOPS_IMPORTANT = factor(SHOPS_IMPORTANT, 
-                                       levels = c("STRONGLY DISAGREE", "DISAGREE", "NEUTRAL", "AGREE", "STRONGLY AGREE"), ordered = TRUE),
-                    TRAVEL_ALONE = factor(TRAVEL_ALONE, 
-                                       levels = c("STRONGLY DISAGREE", "DISAGREE", "NEUTRAL", "AGREE", "STRONGLY AGREE"), ordered = TRUE),
-                    MODE = factor(MODE, 
-                                       levels = c("WALK", "HSR", "CAR")),
-                    Gender = factor(Gender, 
-                                       levels = c("FEMALE", "MALE")),
-                    License = factor(License, 
-                                       levels = c("YES", "NO")),
-                    Vehicle = factor(Vehicle, 
-                                       levels = c("YES", "NO")),
-                    Visa = factor(Visa, 
-                                       levels = c("CANADIAN", "INTERNATIONAL"))
-)
+geocodes <- geocodes %>%
+  transmute(id = Respondent,
+            LAT,
+            LONG)
 ```
 
-Scale income variables:
+Note that the number of observations is 10 less than in file `Number_Alternatives.xlsx`.
+
+Select and pre-process variables from file `Number_Alternatives.xlsx` (which does not have geocodes):
 ```{r}
-mc_modality <- mc_modality %>% mutate(MedIncome = MedIncome/10000, MHI = MHI/10000)
+mc_modality <- mc_modality %>%
+  transmute(id = Respondent,
+            choice = factor(MODE, 
+                            levels = c(1, 2, 3, 4),
+                            labels = c( "Active Travel", "HSR","Car", "GO")),
+            shared_vehicle = factor(case_when(SHARE_ACCE == 1 ~ "Yes",
+                                              TRUE == 0 ~ "No")),
+            bicycle = factor(case_when(OWN_BIKE_B == 1 ~ "Yes",
+                                       TRUE ~ "No")),
+            gender = factor(case_when(GENDER_BIN == 1 ~ "Woman",
+                                      TRUE ~ "Man")),
+            age = AGE_SND * 10,
+            status = factor(case_when(Faculty_St == 1 ~ "Staff or Faculty",
+                                      Student == 1 ~ "Student")),
+            care_giver = factor(case_when(PRIM_CARE_ == 1 ~ "Yes",
+                                          TRUE ~ "No")),
+            modality = factor(case_when(NUM_ALT == 1 ~ "One Mode",
+                                        NUM_ALT == 2 ~ "Two Modes",
+                                        NUM_ALT == 3 ~ "Three Modes",
+                                        NUM_ALT == 4 ~ "Four Modes"),
+                              ordered = TRUE),
+            Boring = case_when(BORING_SD == 1 ~ "STRONGLY DISAGREE",
+                               BORING_D == 1 ~ "DISAGREE",
+                               BORING_A == 1 ~ "AGREE",
+                               BORING_SA == 1 ~ "STRONGLY AGREE",
+                               TRUE ~ "NEUTRAL") %>%
+              factor(levels = c("STRONGLY DISAGREE", "DISAGREE", "NEUTRAL", "AGREE", "STRONGLY AGREE"),
+                     ordered = TRUE),
+            Buses_Comfortable = case_when(BUSES_CO_3 == 1 ~ "STRONGLY DISAGREE",
+                                          BUSES_CO_2 == 1 ~ "DISAGREE",
+                                          BUSES_CO_1 == 1 ~ "AGREE",
+                                          BUSES_COMF == 1 ~ "STRONGLY AGREE",
+                                          TRUE ~ "NEUTRAL") %>%
+              factor(levels = c("STRONGLY DISAGREE", "DISAGREE", "NEUTRAL", "AGREE", "STRONGLY AGREE"),
+                     ordered = TRUE),
+            Clean_Fuel = case_when(HYBRID_SD == 1 ~ "STRONGLY DISAGREE",
+                               HYBRID_D == 1 ~ "DISAGREE",
+                               HYBRID_A == 1 ~ "AGREE",
+                               HYBRID_SA == 1 ~ "STRONGLY AGREE",
+                               TRUE ~ "NEUTRAL") %>%
+              factor(levels = c("STRONGLY DISAGREE", "DISAGREE", "NEUTRAL", "AGREE", "STRONGLY AGREE"),
+                     ordered = TRUE),
+            Limit_Driving = case_when(LIMIT_SD == 1 ~ "STRONGLY DISAGREE",
+                                      LIMIT_D == 1 ~ "DISAGREE",
+                                      LIMIT_A == 1 ~ "AGREE",
+                                      LIMIT_SA == 1 ~ "STRONGLY AGREE",
+                                      TRUE ~ "NEUTRAL") %>%
+              factor(levels = c("STRONGLY DISAGREE", "DISAGREE", "NEUTRAL", "AGREE", "STRONGLY AGREE"),
+                     ordered = TRUE),
+            Productive_Time = case_when(PRODUCTI_3 == 1 ~ "STRONGLY DISAGREE",
+                                        PRODUCTI_2 == 1 ~ "DISAGREE",
+                                        PRODUCTI_1 == 1 ~ "AGREE",
+                                        PRODUCTIVE == 1 ~ "STRONGLY AGREE",
+                                        TRUE ~ "NEUTRAL") %>%
+              factor(levels = c("STRONGLY DISAGREE", "DISAGREE", "NEUTRAL", "AGREE", "STRONGLY AGREE"),
+                     ordered = TRUE),
+            Safe_Cycle = case_when(SAFE_CYC_3 == 1 ~ "STRONGLY DISAGREE",
+                                   SAFE_CYC_2 == 1 ~ "DISAGREE",
+                                   SAFE_CYC_1 == 1 ~ "AGREE",
+                                   SAFE_CYCLE == 1 ~ "STRONGLY AGREE",
+                                   TRUE ~ "NEUTRAL") %>%
+              factor(levels = c("STRONGLY DISAGREE", "DISAGREE", "NEUTRAL", "AGREE", "STRONGLY AGREE"),
+                     ordered = TRUE),
+            Shops_Services = case_when(SHOPS_SE_3 == 1 ~ "STRONGLY DISAGREE",
+                                       SHOPS_SE_2 == 1 ~ "DISAGREE",
+                                       SHOPS_SE_1 == 1 ~ "AGREE",
+                                       SHOPS_SERV == 1 ~ "STRONGLY AGREE",
+                                       TRUE ~ "NEUTRAL") %>%
+              factor(levels = c("STRONGLY DISAGREE", "DISAGREE", "NEUTRAL", "AGREE", "STRONGLY AGREE"),
+                     ordered = TRUE),
+            Someone_Else = case_when(SOMEONE__3 == 1 ~ "STRONGLY DISAGREE",
+                                     SOMEONE__2 == 1 ~ "DISAGREE",
+                                     SOMEONE__1 == 1 ~ "AGREE",
+                                     SOMEONE_EL == 1 ~ "STRONGLY AGREE",
+                                     TRUE ~ "NEUTRAL") %>%
+              factor(levels = c("STRONGLY DISAGREE", "DISAGREE", "NEUTRAL", "AGREE", "STRONGLY AGREE"),
+                     ordered = TRUE),
+            Stuck_Traffic = case_when(STUCK_TR_3 == 1 ~ "STRONGLY DISAGREE",
+                                      STUCK_TR_2 == 1 ~ "DISAGREE",
+                                      STUCK_TR_1 == 1 ~ "AGREE",
+                                      STUCK_TRAF == 1 ~ "STRONGLY AGREE",
+                                      TRUE ~ "NEUTRAL") %>%
+              factor(levels = c("STRONGLY DISAGREE", "DISAGREE", "NEUTRAL", "AGREE", "STRONGLY AGREE"),
+                     ordered = TRUE),
+            Transition = case_when(TRANSITI_3 == 1 ~ "STRONGLY DISAGREE",
+                                   TRANSITI_2 == 1 ~ "DISAGREE",
+                                   TRANSITI_1 == 1 ~ "AGREE",
+                                   TRANSITION == 1 ~ "STRONGLY AGREE",
+                                   TRUE ~ "NEUTRAL") %>%
+              factor(levels = c("STRONGLY DISAGREE", "DISAGREE", "NEUTRAL", "AGREE", "STRONGLY AGREE"),
+                     ordered = TRUE),
+            Travel_Alone = case_when(ALONE_SD == 1 ~ "STRONGLY DISAGREE",
+                                     ALONE_D == 1 ~ "DISAGREE",
+                                     ALONE_A == 1 ~ "AGREE",
+                                     ALONE_SA == 1 ~ "STRONGLY AGREE",
+                                     TRUE ~ "NEUTRAL") %>%
+              factor(levels = c("STRONGLY DISAGREE", "DISAGREE", "NEUTRAL", "AGREE", "STRONGLY AGREE"),
+                     ordered = TRUE),
+            Travel_Tiring = case_when(TIRING_SD == 1 ~ "STRONGLY DISAGREE",
+                                      TIRING_D == 1 ~ "DISAGREE",
+                                      TIRING_A == 1 ~ "AGREE",
+                                      TIRING_SA == 1 ~ "STRONGLY AGREE",
+                                      TRUE ~ "NEUTRAL") %>%
+              factor(levels = c("STRONGLY DISAGREE", "DISAGREE", "NEUTRAL", "AGREE", "STRONGLY AGREE"),
+                     ordered = TRUE),
+            Wasted_Time = case_when(WASTED_SD == 1 ~ "STRONGLY DISAGREE",
+                                    WASTED_D == 1 ~ "DISAGREE",
+                                    WASTED_A == 1 ~ "AGREE",
+                                    WASTED_SA == 1 ~ "STRONGLY AGREE",
+                                    TRUE ~ "NEUTRAL") %>%
+              factor(levels = c("STRONGLY DISAGREE", "DISAGREE", "NEUTRAL", "AGREE", "STRONGLY AGREE"),
+                     ordered = TRUE),
+            
+            Rate_Immigrant = PER_IMMIGR/100,
+            Rate_Non_Canadian = PER_NONCAN/100,
+            Rate_Labor = LABOUR_RAT/100,
+            Rate_Unemployment = UNEMPLOY/100,
+            Rate_Married = PER_MARRIE,
+            Mean_Age = AVG_AGE,
+            Mean_Children = AVG_CHILDR,
+            Median_HH_Income = MED_INCOME/10000,
+            LITA,
+            LUM,
+            MAC_DISTANCE = MAC_DIST/1000,
+            POPULATION_DENSITY = POP_DENSIT,
+            SF_P_RATIO = SF_P_ratio)
 ```
 
-Scale density variables:
 ```{r}
-mc_modality <- mc_modality %>% mutate(EMPLOY_DEN = EMPLOY_DEN/10000, POP_DENSIT = POP_DENSIT/10000)
+mc_modality <- mc_modality %>%
+  inner_join(geocodes,
+             by = "id") %>%
+  select(id, choice, LAT, LONG, everything())
 ```
 
 Save data:
 ```{r}
-usethis::use_data(mc_modality)
+usethis::use_data(mc_modality,
+                  overwrite = TRUE)
 ```
 

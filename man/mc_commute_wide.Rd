@@ -3,7 +3,7 @@
 \docType{data}
 \name{mc_commute_wide}
 \alias{mc_commute_wide}
-\title{McMaster Commuting Dataset (wide format).}
+\title{McMaster Commuting Data set (wide format).}
 \format{
 A data frame with 1375 rows and 74 variables:
 \describe{
@@ -90,10 +90,10 @@ Whalen, K. E., P\'{a}ez, A., & Carrasco, J. A. (2013). Mode choice of university
 data(mc_commute_wide)
 }
 \description{
-A dataset containing information about \emph{students} commuting to McMaster University. Data were collected
+A data set containing information about \emph{students} commuting to McMaster University. Data were collected
 by means of a travel survey in the fall of 2010. Respondents were asked about their mode of
 travel to McMaster University, in Hamilton, Canada. They were also asked about the modes available
-to them. The characteristics of the trips were self-reported or imputed. The dataset also contains
+to them. The characteristics of the trips were self-reported or imputed. The data set also contains
 relevant attributes about the respondents. The format of the table is wide, with each individual
 decision maker in a row.
 }
@@ -101,4 +101,5 @@ decision maker in a row.
  data(mc_commute_wide)
  summary(mc_commute_wide$choice)
 }
-\keyword{datasets}
+\keyword{data}
+\keyword{sets}

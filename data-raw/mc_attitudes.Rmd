@@ -29,12 +29,12 @@ Load dataframe:
 mc_attitudes <- read_excel("input-data-files/Individual+DA Data+Built Environment.xls")
 ```
 
-Convert to factors:
+Select and pre-process variables:
 ```{r}
 mc_attitudes <- mc_attitudes %>%
   transmute(id = ID,
             choice = factor(MODE, 
-                            levels = c( "CAR", "HSR","WALK")),
+                            levels = c( "Car", "HSR","Walk")),
             LAT,
             LONG,
             license = factor(case_when(License == "YES" ~ "Yes",
@@ -58,12 +58,12 @@ mc_attitudes <- mc_attitudes %>%
                                      Level == 7 ~ "PhD",
                                      Level == 8 ~ "Other",
                                      Level == 9 ~ "Other")),
-            Community = factor(COMMUNITY, 
-                               levels = c("STRONGLY DISAGREE", "DISAGREE", "NEUTRAL", "AGREE", "STRONGLY AGREE"), 
-                               ordered = TRUE),
             Active_Neighborhood = factor(ACTIVE_NEIGHBORHOOD, 
                                  levels = c("STRONGLY DISAGREE", "DISAGREE", "NEUTRAL", "AGREE", "STRONGLY AGREE"), 
                                  ordered = TRUE),
+            Community = factor(COMMUNITY, 
+                               levels = c("STRONGLY DISAGREE", "DISAGREE", "NEUTRAL", "AGREE", "STRONGLY AGREE"), 
+                               ordered = TRUE),
             Neighbors = factor(NEIGHBORS, 
                                levels = c("STRONGLY DISAGREE", "DISAGREE", "NEUTRAL", "AGREE", "STRONGLY AGREE"),
                                ordered = TRUE),
@@ -114,6 +114,7 @@ mc_attitudes <- mc_attitudes %>% mutate(EMPLOYMENT_DENSITY = EMPLOYMENT_DENSITY/
 
 Save data:
 ```{r}
-usethis::use_data(mc_attitudes)
+usethis::use_data(mc_attitudes,
+                  overwrite = TRUE)
 ```
 

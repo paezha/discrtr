@@ -3,7 +3,7 @@
 \docType{data}
 \name{mc_commute.csv}
 \alias{mc_commute.csv}
-\title{McMaster Commuting Dataset (csv file).}
+\title{McMaster Commuting Data Set (csv file).}
 \format{
 An comma separated text file :
 \describe{
@@ -55,7 +55,7 @@ data(mc_commute_long)
 A delimited text file containing information about \emph{students} commuting to McMaster University. Data were collected
 by means of a travel survey in the fall of 2010. Respondents were asked about their mode of
 travel to McMaster University, in Hamilton, Canada. They were also asked about the modes available
-to them. The characteristics of the trips were self-reported or imputed. The dataset also contains
+to them. The characteristics of the trips were self-reported or imputed. The data set also contains
 relevant attributes about the respondents. The format of the table is long, with each row representing
 a choice situation.
 }

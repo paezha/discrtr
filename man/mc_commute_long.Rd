@@ -3,7 +3,7 @@
 \docType{data}
 \name{mc_commute_long}
 \alias{mc_commute_long}
-\title{McMaster Commuting Dataset (long format).}
+\title{McMaster Commuting Data Set (long format).}
 \format{
 An indexed data frame of class dfidx with 5500 rows and 62 variables:
 \describe{
@@ -77,10 +77,10 @@ Whalen, K. E., P\'{a}ez, A., & Carrasco, J. A. (2013). Mode choice of university
 data(mc_commute_long)
 }
 \description{
-A dataset containing information about \emph{students} commuting to McMaster University. Data were collected
+A data set containing information about \emph{students} commuting to McMaster University. Data were collected
 by means of a travel survey in the fall of 2010. Respondents were asked about their mode of
 travel to McMaster University, in Hamilton, Canada. They were also asked about the modes available
-to them. The characteristics of the trips were self-reported or imputed. The dataset also contains
+to them. The characteristics of the trips were self-reported or imputed. The data set also contains
 relevant attributes about the respondents. The format of the table is long, with each row representing
 a choice situation.
 }

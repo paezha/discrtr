@@ -3,7 +3,7 @@
 \docType{data}
 \name{mc_attitudes}
 \alias{mc_attitudes}
-\title{McMaster Attitudes Dataset.}
+\title{McMaster Attitudes Data Set.}
 \format{
 A data frame with 1230 rows and 39 variables:
 \describe{
@@ -18,8 +18,8 @@ A data frame with 1230 rows and 39 variables:
 \item{visa}{Visa status of student: Domestic}
 \item{living_arrangements}{Living arrangements DURING THE SCHOOL YEAR are: 1:Living with my family or relatives/By myself off-campus/Shared off-campus accommodations}
 \item{level}{Level of studies: Undergraduate Year I (UG I)/Undergraduate Year II  (UG I)/Undergraduate Year III  (UG III)/Undergraduate Year IV (UG IV)/Undergraduate Year V (UG V)/Masters/PhD/Other (Diploma or Certificate)}
-\item{Community}{Response to statement "There is a sense of community in my neighborhood": Five point likert scale from Strongly Disagree to Strongly Agree, including a neutral point}
 \item{Active_Neighborhood}{Response to statement "I like to live in a neighborhood where there's a lot going on": Five point likert scale from Strongly Disagree to Strongly Agree, including a neutral point}
+\item{Community}{Response to statement "There is a sense of community in my neighborhood": Five point likert scale from Strongly Disagree to Strongly Agree, including a neutral point}
 \item{Neighbors}{Response to statement "I know my neighbors well": Five point likert scale from Strongly Disagree to Strongly Agree, including a neutral point}
 \item{Safe_Walk}{Response to statement "I feel safe and secure when walking in my neighborhood": Five point likert scale from Strongly Disagree to Strongly Agree, including a neutral point}
 \item{Shops_Important}{Response to statement "Having shops and services within walking distance of my home is important to me": Five point likert scale from Strongly Disagree to Strongly Agree, including a neutral point}
@@ -29,7 +29,7 @@ A data frame with 1230 rows and 39 variables:
 \item{Rate_SW_Child}{Proportion of families that are single parent (woman) with children out of all families in Dissemination Area}
 \item{Rate_SM_Child}{Proportion of families that are single parent (man) with children out of all families in Dissemination Area}
 \item{Mean_Children}{Average number of children at home per census family in Dissemination Area}
-\item{Rate_Non_Canadian}{Proportion of non-Canadian citizens to total population in Dissemination Area}
+\item{Rate_Non_Canadian}{Proportion of non-Canadian residents to total population in Dissemination Area}
 \item{Median_HH_Income}{Median family income in Dissemination Area in $10,000}
 \item{Mean_HH_Income}{Mean family income in Dissemination Area in $10,000}
 \item{Rate_Unemployment}{Unemployment rate in Dissemination Area}
@@ -55,10 +55,10 @@ P\'{a}ez, A. (2013). Mapping travelers’ attitudes: does space matter?. Journal
 data(mc_attitudes)
 }
 \description{
-A dataset containing information about \emph{students} commuting to McMaster University. Data were collected
+A data set containing information about \emph{students} commuting to McMaster University. Data were collected
 by means of a travel survey in the fall of 2010. Respondents were asked about their mode of
 travel to McMaster University, in Hamilton, Canada. They were also asked to respond to a series of attitudinal
-statements. The dataset contains relevant attributes about the respondents. The format of the table is wide,
+statements. The data set contains relevant attributes about the respondents. The format of the table is wide,
 with each row representing an individual respondent. These variables were augmented with information from the
 2011 Census of Canada and land use information from local sources.
 }

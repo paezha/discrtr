@@ -1,6 +1,6 @@
 Package: discrtr
 Title: A companion package for the book Introduction to Discrete Choice Analysis with `R`
-Version: 0.0.0.9600
+Version: 0.0.0.9700
 Authors@R: 
     c(person(given = "Antonio",
            family = "Paez",

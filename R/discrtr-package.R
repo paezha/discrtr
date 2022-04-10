@@ -5,12 +5,74 @@
 ## usethis namespace: end
 NULL
 
-#' McMaster Commuting Dataset (wide format).
+#' McMaster Attitudes Data Set.
 #'
-#' A dataset containing information about _students_ commuting to McMaster University. Data were collected
+#' A data set containing information about _students_ commuting to McMaster University. Data were collected
+#' by means of a travel survey in the fall of 2010. Respondents were asked about their mode of
+#' travel to McMaster University, in Hamilton, Canada. They were also asked to respond to a series of attitudinal
+#' statements. The data set contains relevant attributes about the respondents. The format of the table is wide,
+#' with each row representing an individual respondent. These variables were augmented with information from the
+#' 2011 Census of Canada and land use information from local sources.
+#'
+#' @format A data frame with 1230 rows and 39 variables:
+#' \describe{
+#'   \item{id}{Unique identifier for respondents}
+#'   \item{choice}{Mode of transportation chosen: Car, HSR (local transit), Walk}
+#'   \item{LAT}{Latitude of the place or residence, geocoded at the nearest major intersection or centroid of 6-digit postal area}
+#'   \item{LONG}{Longitude of the place or residence, geocoded at the nearest major intersection or centroid of 6-digit postal area}
+#'   \item{license}{Indicator variable for holding a driver license: Yes/No}
+#'   \item{vehicle}{Indicator variable for having individual access to a private car (i.e., car not shared with other household members): Yes/No}
+#'   \item{gender}{Woman/Man}
+#'   \item{age}{Age in years}
+#'   \item{visa}{Visa status of student: Domestic}
+#'   \item{living_arrangements}{Living arrangements DURING THE SCHOOL YEAR are: 1:Living with my family or relatives/By myself off-campus/Shared off-campus accommodations}
+#'   \item{level}{Level of studies: Undergraduate Year I (UG I)/Undergraduate Year II  (UG I)/Undergraduate Year III  (UG III)/Undergraduate Year IV (UG IV)/Undergraduate Year V (UG V)/Masters/PhD/Other (Diploma or Certificate)}
+#'   \item{Active_Neighborhood}{Response to statement "I like to live in a neighborhood where there's a lot going on": Five point likert scale from Strongly Disagree to Strongly Agree, including a neutral point}
+#'   \item{Community}{Response to statement "There is a sense of community in my neighborhood": Five point likert scale from Strongly Disagree to Strongly Agree, including a neutral point}
+#'   \item{Neighbors}{Response to statement "I know my neighbors well": Five point likert scale from Strongly Disagree to Strongly Agree, including a neutral point}
+#'   \item{Safe_Walk}{Response to statement "I feel safe and secure when walking in my neighborhood": Five point likert scale from Strongly Disagree to Strongly Agree, including a neutral point}
+#'   \item{Shops_Important}{Response to statement "Having shops and services within walking distance of my home is important to me": Five point likert scale from Strongly Disagree to Strongly Agree, including a neutral point}
+#'   \item{Travel_Alone}{Response to statement "I like traveling alone": Five point likert scale from Strongly Disagree to Strongly Agree, including a neutral point}
+#'   \item{DAUID}{Unique ID of Dissemination Area of the Census}
+#'   \item{Rate_Couple_Child}{Proportion of families that are couples with children out of all families in Dissemination Area}
+#'   \item{Rate_SW_Child}{Proportion of families that are single parent (woman) with children out of all families in Dissemination Area}
+#'   \item{Rate_SM_Child}{Proportion of families that are single parent (man) with children out of all families in Dissemination Area}
+#'   \item{Mean_Children}{Average number of children at home per census family in Dissemination Area}
+#'   \item{Rate_Non_Canadian}{Proportion of non-Canadian residents to total population in Dissemination Area}
+#'   \item{Median_HH_Income}{Median family income in Dissemination Area in $10,000}
+#'   \item{Mean_HH_Income}{Mean family income in Dissemination Area in $10,000}
+#'   \item{Rate_Unemployment}{Unemployment rate in Dissemination Area}
+#'   \item{Rate_1yr_Move}{Proportion of residents that moved to Dissemination Area in the year previous to the census}
+#'   \item{Rate_5yr_Move}{Proportion of residents that moved to Dissemination Area in the 5 years previous to the census}
+#'   \item{Rate_Public}{Proportion of residents in Dissemination Area that used public transportation to commute to work}
+#'   \item{Rate_Walk}{Proportion of residents in Dissemination Area that walked to work}
+#'   \item{Rate_Cycle}{Proportion of residents in Dissemination Area that cycled to work}
+#'   \item{AREA}{Area of Dissemination Area in square kilometers}
+#'   \item{LUM}{Entropy-based land use mix index in Dissemination Area: lower values mean more homogenous land uses, higher values greater mix of uses}
+#'   \item{SIDEWALK_DENSITY}{Sidewalk density in Dissemination Area in km/sq.km}
+#'   \item{STREET_DENSITY}{Street density in Dissemination Area in km/sq.km}
+#'   \item{INTERSECTION_DENSITY}{Intersection density in Dissemination Area in 1/sq.km}
+#'   \item{SF_P_RATIO}{Ratio of building footprint to parcel area in Dissemination Area: a measure of density of development}
+#'   \item{EMPLOYMENT_DENSITY}{Employment density in Dissemination Area in jobs/sq.km}
+#'   \item{POPULATION_DENSITY}{Population density in Dissemination Area in people/sq.km}
+#' }
+#'
+#' @docType data
+#' @keywords datasets
+#' @name mc_attitudes
+#' @usage data(mc_attitudes)
+#' @source P\'{a}ez, A. (2013). Mapping travelers’ attitudes: does space matter?. Journal of Transport Geography, 26, 117-125. (https://doi.org/10.1016/j.jtrangeo.2012.09.002)
+#' @examples
+#'  data(mc_attitudes)
+#'  summary(mc_attitudes$Community)
+"mc_attitudes"
+
+#' McMaster Commuting Data set (wide format).
+#'
+#' A data set containing information about _students_ commuting to McMaster University. Data were collected
 #' by means of a travel survey in the fall of 2010. Respondents were asked about their mode of
 #' travel to McMaster University, in Hamilton, Canada. They were also asked about the modes available
-#' to them. The characteristics of the trips were self-reported or imputed. The dataset also contains
+#' to them. The characteristics of the trips were self-reported or imputed. The data set also contains
 #' relevant attributes about the respondents. The format of the table is wide, with each individual
 #' decision maker in a row.
 #'
@@ -93,7 +155,7 @@ NULL
 #' }
 #'
 #' @docType data
-#' @keywords datasets
+#' @keywords data sets
 #' @name mc_commute_wide
 #' @usage data(mc_commute_wide)
 #' @source Whalen, K. E., P\'{a}ez, A., & Carrasco, J. A. (2013). Mode choice of university students commuting to school and the role of active travel. Journal of Transport Geography, 31, 132-142. (https://doi.org/10.1016/j.jtrangeo.2013.06.008)
@@ -102,12 +164,12 @@ NULL
 #'  summary(mc_commute_wide$choice)
 "mc_commute_wide"
 
-#' McMaster Commuting Dataset (long format).
+#' McMaster Commuting Data Set (long format).
 #'
-#' A dataset containing information about _students_ commuting to McMaster University. Data were collected
+#' A data set containing information about _students_ commuting to McMaster University. Data were collected
 #' by means of a travel survey in the fall of 2010. Respondents were asked about their mode of
 #' travel to McMaster University, in Hamilton, Canada. They were also asked about the modes available
-#' to them. The characteristics of the trips were self-reported or imputed. The dataset also contains
+#' to them. The characteristics of the trips were self-reported or imputed. The data set also contains
 #' relevant attributes about the respondents. The format of the table is long, with each row representing
 #' a choice situation.
 #'
@@ -187,12 +249,12 @@ NULL
 #'  print(mc_commute_long, n = 12)
 "mc_commute_long"
 
-#' McMaster Commuting Dataset (csv file).
+#' McMaster Commuting Data Set (csv file).
 #'
 #' A delimited text file containing information about _students_ commuting to McMaster University. Data were collected
 #' by means of a travel survey in the fall of 2010. Respondents were asked about their mode of
 #' travel to McMaster University, in Hamilton, Canada. They were also asked about the modes available
-#' to them. The characteristics of the trips were self-reported or imputed. The dataset also contains
+#' to them. The characteristics of the trips were self-reported or imputed. The data set also contains
 #' relevant attributes about the respondents. The format of the table is long, with each row representing
 #' a choice situation.
 #'
@@ -246,67 +308,65 @@ NULL
 #'  mc_commute <- read_csv(system.file("extdata", "mc_commute.csv", package = "discrtr"))
 NULL
 
-#' McMaster Attitudes Dataset.
+#' McMaster Modality Data Set.
 #'
-#' A dataset containing information about _students_ commuting to McMaster University. Data were collected
-#' by means of a travel survey in the fall of 2010. Respondents were asked about their mode of
-#' travel to McMaster University, in Hamilton, Canada. They were also asked to respond to a series of attitudinal
-#' statements. The dataset contains relevant attributes about the respondents. The format of the table is wide,
+#' A dataset containing information about _students_, _staff_, and _faculty_ commuting to McMaster University.
+#' Data were collected by means of a travel survey in the fall of 2010. Respondents were asked about their mode
+#' of travel to McMaster University, in Hamilton, Canada. They were also asked about the modes available
+#' to them. The data set also contains relevant attributes about the respondents. The format of the table is wide,
 #' with each row representing an individual respondent. These variables were augmented with information from the
 #' 2011 Census of Canada and land use information from local sources.
 #'
-#' @format A data frame with 1230 rows and 39 variables:
+#' @format A data frame with 4,146 rows and 37 variables:
 #' \describe{
 #'   \item{id}{Unique identifier for respondents}
-#'   \item{choice}{Mode of transportation chosen: Car, HSR (local transit), Walk}
+#'   \item{choice}{Mode of transportation chosen: Active Travel (Cycle/Walk), HSR (local transit), Car, GO (regional transit)}
 #'   \item{LAT}{Latitude of the place or residence, geocoded at the nearest major intersection or centroid of 6-digit postal area}
 #'   \item{LONG}{Longitude of the place or residence, geocoded at the nearest major intersection or centroid of 6-digit postal area}
-#'   \item{license}{Indicator variable for holding a driver license: Yes/No}
-#'   \item{vehicle}{Indicator variable for having individual access to a private car (i.e., car not shared with other household members): Yes/No}
+#'   \item{shared_vehicle}{Indicator variable for having individual access to a private car (i.e., car shared with other household members): Yes/No}
+#'   \item{bicycle}{Indicator variable for owning a bicycle: Yes/No}
 #'   \item{gender}{Woman/Man}
 #'   \item{age}{Age in years}
-#'   \item{visa}{Visa status of student: Domestic}
-#'   \item{living_arrangements}{Living arrangements DURING THE SCHOOL YEAR are: 1:Living with my family or relatives/By myself off-campus/Shared off-campus accommodations}
-#'   \item{level}{Level of studies: Undergraduate Year I (UG I)/Undergraduate Year II  (UG I)/Undergraduate Year III  (UG III)/Undergraduate Year IV (UG IV)/Undergraduate Year V (UG V)/Masters/PhD/Other (Diploma or Certificate)}
-#'   \item{Community}{Response to statement "There is a sense of community in my neighborhood": Five point likert scale from Strongly Disagree to Strongly Agree, including a neutral point}
-#'   \item{Active_Neighborhood}{Response to statement "I like to live in a neighborhood where there's a lot going on": Five point likert scale from Strongly Disagree to Strongly Agree, including a neutral point}
-#'   \item{Neighbors}{Response to statement "I know my neighbors well": Five point likert scale from Strongly Disagree to Strongly Agree, including a neutral point}
-#'   \item{Safe_Walk}{Response to statement "I feel safe and secure when walking in my neighborhood": Five point likert scale from Strongly Disagree to Strongly Agree, including a neutral point}
-#'   \item{Shops_Important}{Response to statement "Having shops and services within walking distance of my home is important to me": Five point likert scale from Strongly Disagree to Strongly Agree, including a neutral point}
-#'   \item{Travel_Alone}{Response to statement "I like traveling alone": Five point likert scale from Strongly Disagree to Strongly Agree, including a neutral point}
-#'   \item{DAUID}{Unique ID of Dissemination Area of the Census}
-#'   \item{Rate_Couple_Child}{Proportion of families that are couples with children out of all families in Dissemination Area}
-#'   \item{Rate_SW_Child}{Proportion of families that are single parent (woman) with children out of all families in Dissemination Area}
-#'   \item{Rate_SM_Child}{Proportion of families that are single parent (man) with children out of all families in Dissemination Area}
-#'   \item{Mean_Children}{Average number of children at home per census family in Dissemination Area}
-#'   \item{Rate_Non_Canadian}{Proportion of non-Canadian citizens to total population in Dissemination Area}
-#'   \item{Median_HH_Income}{Median family income in Dissemination Area in $10,000}
-#'   \item{Mean_HH_Income}{Mean family income in Dissemination Area in $10,000}
+#'   \item{status}{Indicator variable for status at McMaster: Staff or Faculty/Student}
+#'   \item{care_giver}{Indicator variable for being primary care giver for any minors in the household: Yes/No}
+#'   \item{modality}{Indicator variable for number of available modes: One Mode/Two Modes/Three Modes/Four Modes}
+#'   \item{Boring}{Response to statement "Traveling is boring" as factor: Strongly Disagree, Disagree, Neutral, Agree, Strongly Agree}
+#'   \item{Buses_Comfortable}{Response to statement "The buses I usually travel in are comfortable" as factor: Strongly Disagree, Disagree, Neutral, Agree, Strongly Agree}
+#'   \item{Clean_Fuel}{Response to statement "To improve the environment, I am willing to pay a little more to use a hybrid, electric or other clean fuel vehicle" as factor: Strongly Disagree, Disagree, Neutral, Agree, Strongly Agree}
+#'   \item{Limit_Driving}{Response to statement "I limit my auto travel to help improve congestion and the environment" as factor: Strongly Disagree, Disagree, Neutral, Agree, Strongly Agree}
+#'   \item{Productive_Time}{Response to statement "I use my commute time productively" as factor: Strongly Disagree, Disagree, Neutral, Agree, Strongly Agree}
+#'   \item{Safe_Cycle}{Response to statement "I feel safe and secure to cycle around town" as factor: Strongly Disagree, Disagree, Neutral, Agree, Strongly Agree}
+#'   \item{Shops_Services}{Response to statement "Having shops and services within walking distance of my home is important to me" as factor: Strongly Disagree, Disagree, Neutral, Agree, Strongly Agree}
+#'   \item{Someone_Else}{Response to statement "Usually, I'd rather have someone else do the driving" as factor: Strongly Disagree, Disagree, Neutral, Agree, Strongly Agree}
+#'   \item{Stuck_Traffic}{Response to statement "Getting stuck in traffic doesn't bother me too much" as factor: Strongly Disagree, Disagree, Neutral, Agree, Strongly Agree}
+#'   \item{Transition}{Response to statement "My commute trip is a useful transition between home and school" as factor: Strongly Disagree, Disagree, Neutral, Agree, Strongly Agree}
+#'   \item{Travel_Alone}{Response to statement "I like traveling alone" as factor: Strongly Disagree, Disagree, Neutral, Agree, Strongly Agree}
+#'   \item{Travel_Tiring}{Response to statement "Traveling is generally tiring for me" as factor: Strongly Disagree, Disagree, Neutral, Agree, Strongly Agree}
+#'   \item{Wasted_Time}{Response to statement "Traveling is generally tiring for me" as factor: Strongly Disagree, Disagree, Neutral, Agree, Strongly Agree}
+#'   \item{Rate_Immigrant}{Proportion of inmigrants to total population in Dissemination Area}
+#'   \item{Rate_Non_Canadian}{Proportion of non-Canadian residents to total population in Dissemination Area}
+#'   \item{Rate_Labor}{Proportion of residents in Dissemination Area who are in the labor force}
 #'   \item{Rate_Unemployment}{Unemployment rate in Dissemination Area}
-#'   \item{Rate_1yr_Move}{Proportion of residents that moved to Dissemination Area in the year previous to the census}
-#'   \item{Rate_5yr_Move}{Proportion of residents that moved to Dissemination Area in the 5 years previous to the census}
-#'   \item{Rate_Public}{Proportion of residents in Dissemination Area that used public transportation to commute to work}
-#'   \item{Rate_Walk}{Proportion of residents in Dissemination Area that walked to work}
-#'   \item{Rate_Cycle}{Proportion of residents in Dissemination Area that cycled to work}
-#'   \item{AREA}{Area of Dissemination Area in square kilometers}
+#'   \item{Rate_Married}{Proportion of families headed by a married couple to total population in Dissemination Area}
+#'   \item{Mean_Age}{Mean age of residents in Dissemination Area in years}
+#'   \item{Mean_Children}{Mean number of children per family in Dissemination Area}
+#'   \item{Median_HH_Income}{Median family income in Dissemination Area in $10,000}
+#'   \item{LITA}{Transit access index – combination of capacity, frequency, and coverage of service (Wiley et al., 2011)}
 #'   \item{LUM}{Entropy-based land use mix index in Dissemination Area: lower values mean more homogenous land uses, higher values greater mix of uses}
-#'   \item{SIDEWALK_DENSITY}{Sidewalk density in Dissemination Area in km/sq.km}
-#'   \item{STREET_DENSITY}{Street density in Dissemination Area in km/sq.km}
-#'   \item{INTERSECTION_DENSITY}{Intersection density in Dissemination Area in 1/sq.km}
-#'   \item{SF_P_RATIO}{Ratio of building footprint to parcel area in Dissemination Area: a measure of density of development}
-#'   \item{EMPLOYMENT_DENSITY}{Employment density in Dissemination Area in jobs/sq.km}
+#'   \item{MAC_DISTANCE}{Network distance from place of residence to McMaster University in km}
 #'   \item{POPULATION_DENSITY}{Population density in Dissemination Area in people/sq.km}
+#'   \item{SF_P_RATIO}{Ratio of building footprint to parcel area in Dissemination Area: a measure of density of development}
 #' }
 #'
 #' @docType data
 #' @keywords datasets
-#' @name mc_attitudes
-#' @usage data(mc_attitudes)
-#' @source P\'{a}ez, A. (2013). Mapping travelers’ attitudes: does space matter?. Journal of Transport Geography, 26, 117-125. (https://doi.org/10.1016/j.jtrangeo.2012.09.002)
+#' @name mc_modality
+#' @usage data(mc_modality)
+#' @source Lavery, T., P\'{a}ez, A., & Kanaroglou, P.S. (2013). Driving out of choices: An investigation of transport modality in a university sample. Transportation Research Part A: Policy and Practice, 57:37-46 (https://doi.org/10.1016/j.tra.2013.09.010)
 #' @examples
-#'  data(mc_attitudes)
-#'  summary(mc_attitudes$Community)
-"mc_attitudes"
+#'  data(mc_modality)
+#'  summary(mc_modality)
+"mc_modality"
 
 #' Hamilton City boundaries and urban types
 #'

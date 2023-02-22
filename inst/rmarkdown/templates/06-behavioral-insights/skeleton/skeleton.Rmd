@@ -1,0 +1,527 @@
+---
+title: "Code in Chapter 06: Behavioral Insights"
+author: "Antonio Paez and Genevieve Boisjoly"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r ch06-hello-world}
+# Function `writeLines()` is similar to `print()` but allows for line breaks
+writeLines("Are these the shadows of the things that Will be,
+           or are they shadows of the things that May be only?")
+```
+
+```{r ch06-load-packages, message = FALSE, cache=FALSE}
+library(dplyr) # A Grammar of Data Manipulation
+library(evd) # Functions for Extreme Value Distributions 
+library(ggplot2) # Create Elegant Data Visualisations Using the Grammar of Graphics
+library(kableExtra) # Construct Complex Table with 'kable' and Pipe Syntax 
+library(mlogit) # Multinomial Logit Models
+library(tidyr) # Tidy Messy Data
+```
+
+```{r ch06-load-data}
+data("Heating")
+```
+
+```{r ch06-summary-costs}
+Proportion <- Heating %>% 
+  # Group the rows by the value of `depvar`
+  group_by(depvar) %>%
+  # Count the number of cases of each outcome in `depvar`
+  summarise(no_rows = n())
+
+df <- data.frame(System = c("Gas Central", 
+                            "Gas Room",
+                            "Electric Central", 
+                            "Electric Room", 
+                            "Heat Pump"),
+                 Installation = c(median(Heating$ic.gc), 
+                                  median(Heating$ic.gr),
+                                  median(Heating$ic.ec), 
+                                  median(Heating$ic.er), 
+                                  median(Heating$ic.hp)),
+                 Operation = c(median(Heating$oc.gc),
+                               median(Heating$oc.gr), 
+                               median(Heating$oc.ec), 
+                               median(Heating$oc.er), 
+                               median(Heating$oc.hp)),
+                 Proportion = Proportion$no_rows/900)
+
+df %>%
+  kable() %>%
+  kable_styling()
+```
+
+```{r ch06-summary-decision-makers}
+Heating %>%
+  # Select columns 13 to 16
+  select(13:16) %>%
+  summary()
+```
+
+```{r ch06-reshape-data}
+H <- Heating %>%
+  mlogit.data(shape = "wide", 
+              # Name of column with the choices
+              choice = "depvar", 
+              # Numbers of columns with attributes that vary by alternative
+              varying = c(3:12))
+```
+
+```{r ch06-model1-summary, results="asis"}
+model1 <- mlogit(depvar ~ ic, 
+                 Heating, 
+                 shape = "wide", 
+                 choice = "depvar", 
+                 reflevel = "ec", 
+                 varying = c(3:7))
+
+stargazer::stargazer(model1, 
+                     type = "latex",
+                     header = FALSE,
+                     single.row = TRUE,
+                     title = "Estimation results: Model 1 (wide data as input)")
+```
+
+```{r ch06-model1-summary-long-table, results="asis"}
+model1 <- mlogit(depvar ~ ic,
+                 H, 
+                 reflevel = "ec")
+
+stargazer::stargazer(model1, 
+                     type = "latex",
+                     header = FALSE,
+                     single.row = TRUE,
+                     title = "Estimation results: Model 1 (long data as input)")
+```
+
+```{r ch06-fig-logistic-non-linear, echo = FALSE, fig.cap= "\\label{fig:fig-logistic-non-linear}The logit probability is not linear on the variables."}
+# Create a data frame for plotting
+df <- data.frame(x =seq(from = -5, 
+                        to = 5, 
+                        by = 0.01)) %>% 
+  mutate(y = plogis(x))
+
+# Plot
+logit_plot <- ggplot(data = df, 
+                     aes(x, y)) +
+  geom_line(color = "orange") +  # Plot cumulative distribution function
+  ylim(c(0, 1)) + # Set the limits of the y axis
+  geom_hline(yintercept = 0) + # Add y axis
+  geom_vline(xintercept = 0) # Add x axis
+
+logit_plot +
+  xlab(expression(paste(V[j], " - ", V[i], sep=""))) + # Label the x axis
+  ylab(expression(paste(P[j]))) + # Label the y axis
+  annotate("segment", 
+           x = -3.75, 
+           xend = -2.5, 
+           y = 0.024, 
+           yend = 0.024, 
+           colour = "blue", 
+           linetype = "solid") +
+  annotate("segment",
+           x = -2.5, 
+           xend = -2.5, 
+           y = 0.024, 
+           yend = 0.075, 
+           colour = "blue", 
+           linetype = "solid") +
+  annotate("segment", 
+           x = 0, 
+           xend = 1.25, 
+           y = 0.5, 
+           yend = 0.5,
+           colour = "red",
+           linetype = "dashed") +
+  annotate("segment",
+           x = 1.25, 
+           xend = 1.25, 
+           y = 0.5, 
+           yend = 0.77,
+           colour = "red", 
+           linetype = "dashed")
+```
+
+```{r ch06-initialize-costs-for prediction}
+ic_min <- Heating[1,]
+ic_mean <- Heating[1,]
+ic_max <- Heating[1,]
+```
+
+```{r ch06-calculate-min-mean-max-costs}
+min_cost <- Heating %>% 
+  select(starts_with("ic")) %>% 
+  summarise(across(.cols = everything(),
+                   min))
+mean_cost <- Heating %>% 
+  select(starts_with("ic"))%>% 
+  summarise(across(.cols = everything(),
+                   mean))
+max_cost <- Heating %>% 
+  select(starts_with("ic"))%>% 
+  summarise(across(.cols = everything(),
+                   max))
+```
+
+```{r ch06-replace-costs-for-prediction}
+ic_min[3:7] <- min_cost
+ic_mean[3:7] <- mean_cost
+ic_max[3:7] <- max_cost
+```
+
+```{r ch06-inspect-costs-for-prediction}
+head(ic_max)
+```
+
+```{r ch06-estimate-probabilities-model1}
+p_model1_ic_min <- predict(model1, 
+                           newdata = mlogit.data(ic_min, 
+                                                 shape = "wide", 
+                                                 choice = "depvar", 
+                                                 varying = 3:7))
+p_model1_ic_mean <- predict(model1, 
+                            newdata = mlogit.data(ic_mean,
+                                                  shape = "wide",
+                                                  choice = "depvar", 
+                                                  varying = 3:7))
+p_model1_ic_max <- predict(model1, 
+                           newdata = mlogit.data(ic_max, 
+                                                 shape = "wide", 
+                                                 choice = "depvar", 
+                                                 varying = 3:7))
+```
+
+```{r}
+min_cost
+p_model1_ic_min
+```
+
+```{r ch06-table-probabilities-model1}
+data.frame(System = c("Electric Central",
+                      "Electric Room",
+                      "Gas Central",
+                      "Gas Room",
+                      "Heat Pump"),
+           ic_min = ic_min %>% 
+             # Select installation costs in the same order as the probabilities
+             select(ic.ec, ic.er, ic.gc, ic.gr, ic.hp) %>%
+             t() %>% 
+             as.numeric() %>%
+             round(1),
+           p_min = p_model1_ic_min %>% 
+             as.numeric() %>%
+             round(3),
+           ic_mean = ic_mean %>%
+             # Select installation costs in the same order as the probabilities
+             select(ic.ec, ic.er, ic.gc, ic.gr, ic.hp) %>%
+             t() %>% 
+             as.numeric() %>%
+             round(1),
+           p_mean = p_model1_ic_mean %>% 
+             as.numeric() %>%
+             round(3),
+           ic_max = ic_max %>% 
+             # Select installation costs in the same order as the probabilities
+             select(ic.ec, ic.er, ic.gc, ic.gr, ic.hp) %>%
+             t() %>% 
+             as.numeric()  %>%
+             round(1),
+           p_max = p_model1_ic_max %>% 
+             as.numeric() %>%
+             round(3)) %>%
+  kable(col.names = c("System",
+                      "Cost",
+                      "Probability",
+                      "Cost",
+                      "Probability",
+                      "Cost",
+                      "Probability"),
+        digits = 3) %>%
+  kable_styling() %>%
+  add_header_above(c(" " = 1, 
+                     "Minimum Cost" = 2, 
+                     "Mean Cost" = 2, 
+                     "Maximum Cost" = 2))
+```
+
+```{r ch06-marginal-effects-gas-central-model1}
+-0.00168108 * (1 - 0.617)
+-0.00168108 * (1 - 0.639)
+-0.00168108 * (1 - 0.672)
+```
+
+```{r ch06-cross-marginal-effects-gas-central-model1}
+-(-0.00168108 * 0.617)
+-(-0.00168108 * 0.639)
+-(-0.00168108 * 0.672)
+```
+
+```{r ch06-direct-point-elasticity-gas-central-model1}
+-0.00168108 * 431.8 * (1 - 0.617)
+-0.00168108 * 776.8 * (1 - 0.639)
+-0.00168108 * 1158.9 * (1 - 0.672)
+```
+
+```{r ch06-cross-point-elasticity-gas-central-model1}
+-(-0.00168108 * 431.8 * 0.617)
+-(-0.00168108 * 776.8 *  0.639)
+-(-0.00168108 * 1158.9 * 0.672)
+```
+
+```{r ch06-marginal-effects-at-min-installation-cost-model1}
+effects(model1,
+        # Calculate the marginal effects with respect to attribute "ic"
+        covariate = "ic",
+        # Type of effects to compute: relative for probability, absolute for attribute 
+        type = "ra", 
+        data = mlogit.data(ic_min, 
+                           shape = "wide", 
+                           choice = "depvar", 
+                           varying = 3:7))
+```
+
+```{r ch06-marginal-effects-at-mean-installation-cost-model1}
+effects(model1,
+        covariate = "ic",
+        type = "ra", 
+        data = mlogit.data(ic_mean, 
+                           shape = "wide", 
+                           choice = "depvar", 
+                           varying = 3:7))
+```
+
+```{r ch06-marginal-effects-at-max-installation-cost-model1}
+effects(model1, 
+        covariate = "ic", 
+        type = "ra",
+        data = mlogit.data(ic_max, 
+                           shape = "wide",
+                           choice = "depvar", 
+                           varying = 3:7))
+```
+
+```{r ch06-elasticities-at-min-installation-cost-model1}
+effects(model1, 
+        covariate = "ic", 
+        type = "rr", 
+        data = mlogit.data(ic_min, 
+                           shape = "wide",
+                           choice = "depvar", 
+                           varying = 3:7))
+```
+
+```{r ch06-elasticities-at-mean-and-max-installation-cost-model1}
+effects(model1, 
+        covariate = "ic", 
+        type = "rr", 
+        data = mlogit.data(ic_mean, 
+                           shape = "wide", 
+                           choice = "depvar", 
+                           varying = 3:7))
+effects(model1, 
+        covariate = "ic", 
+        type = "rr", 
+        data = mlogit.data(ic_max, 
+                           shape = "wide", 
+                           choice = "depvar", 
+                           varying = 3:7))
+```
+
+```{r ch06-summary-region}
+summary(Heating$region)
+```
+
+```{r ch06-model2-summary, results="asis"}
+model2 <- mlogit(depvar ~ ic | region, 
+                 Heating, 
+                 shape = "wide", 
+                 choice = "depvar", 
+                 reflevel = "ec", 
+                 varying = c(3:7))
+
+stargazer::stargazer(model2, 
+                     header = FALSE,
+                     single.row = TRUE,
+                     title = "Estimation results: Model 2")
+```
+
+```{r ch06-mean-region}
+ic_mean_region <- ic_mean %>% 
+  mutate(count = 4) %>% 
+  uncount(count)
+ic_mean_region$region <- c("valley", 
+                           "scostl",
+                           "mountn", 
+                           "ncostl")
+head(ic_mean_region)
+```
+
+```{r ch06-probabilities-model2}
+p_region_ic_mean <- data.frame(Region = c("valley", 
+                                          "scostl", 
+                                          "mountn", 
+                                          "ncostl"),
+                               predict(model2, 
+                                       newdata = mlogit.data(ic_mean_region,
+                                                             shape = "wide",
+                                                             choice = "depvar", 
+                                                             varying = 3:7), 
+                                       outcome = FALSE))
+p_region_ic_mean
+```
+
+```{r ch06-probabilities-region-model2}
+data.frame (Effect = c("valley to scostl", 
+                       "valley to mountn",
+                       "valley to ncostl"),
+            rbind (p_region_ic_mean[2, 2:6] - p_region_ic_mean[1, 2:6],
+                   p_region_ic_mean[3, 2:6] - p_region_ic_mean[1, 2:6],
+                   p_region_ic_mean[4, 2:6] - p_region_ic_mean[1, 2:6]))
+```
+
+```{r ch06-model3-summary, results="asis"}
+model3 <- mlogit(depvar ~ ic + oc, 
+                 Heating, 
+                 shape = "wide", 
+                 choice = "depvar", 
+                 reflevel = "ec", 
+                 varying = c(3:12))
+
+stargazer::stargazer(model3, 
+                     header = FALSE,
+                     single.row = TRUE,
+                     title = "Estimation results: Model 3")
+```
+
+```{r ch06-simulate-rebate-installation-cost-heat-pump}
+H_rebate <- Heating %>% 
+  mutate(ic.hp = 0.85 * ic.hp)
+```
+
+```{r ch06-market-shares-do-nothing}
+data.frame(Policy = c("Do nothing", "15% rebate"),
+           rbind(apply(predict(model3, 
+                               newdata = mlogit.data(Heating, 
+                                                     shape = "wide", 
+                                                     choice = "depvar", 
+                                                     varying = c(3:12))),
+                       2,
+                       mean),
+                 apply(predict(model3, 
+                               newdata = mlogit.data(H_rebate,
+                                                     shape = "wide",
+                                                     choice = "depvar",
+                                                     varying = c(3:12))),
+                       2,
+                       mean)))
+```
+
+```{r ch06-model-matrix-model3}
+X <- model.matrix(model3)
+head(X)
+```
+
+```{r ch06-add-new-alternative}
+alt <- index(H)$alt
+Xn <- X[alt == "ec",]
+head(Xn)
+```
+
+```{r ch06-simulate-new-alternative}
+Xn[, "ic"] <- Xn[, "ic"] + 200
+Xn[, "oc"] <- Xn[, "oc"] * 0.75
+head(Xn)
+```
+
+```{r ch06-prepare-data-for-simulating-new-system}
+chid <- index(H)$chid
+head(chid, 12)
+unchid <- unique(index(H)$chid)
+head(unchid, 12)
+rownames(Xn) <- paste(unchid, 'new', sep = ".")
+chidb <- c(chid, unchid)
+head(Xn)
+```
+
+```{r ch06-join-new-system}
+X <- rbind(X, Xn)
+X <- X[order(chidb), ]
+head(X,15)
+```
+
+```{r ch06-calculate-exp-Xb}
+exp_Xb <- as.numeric(exp(X %*% coef(model3))) # vectors
+head(exp_Xb)
+# tapply does the sum of th exp_Xb for each chidb
+sum_exp_Xb <- as.numeric(tapply(exp_Xb, 
+                                sort(chidb),
+                                sum)) 
+```
+
+```{r ch06-calculate-probabilities}
+P <- exp_Xb / sum_exp_Xb[sort(chidb)]
+```
+
+```{r ch06-convert-to-matrix}
+P <- data.frame(matrix(P, 
+                       ncol = 6, 
+                       byrow = TRUE))
+P <- transmute(P,   
+               ec = P[, 1],
+               er = P[, 2], 
+               gc = P[, 3], 
+               gr = P[, 4],
+               hp = P[, 5], 
+               new = P[, 6])
+```
+
+```{r ch06-summarize-probabilities-simulation-of-new-system}
+summary(rowSums(P))
+```
+
+```{r ch06-estimated-penetration-new-system}
+apply(P, 2, mean)
+```
+
+```{r ch06-system-shares-with-new-system}
+apply(fitted(model3,
+             outcome = FALSE), 
+      2, 
+      mean)
+```
+
+```{r ch06-probabilities-model3}
+p_model3 <- fitted(model3,
+                   outcome = FALSE) %>%
+  data.frame()
+```
+
+```{r ch06-shares-model3}
+apply(p_model3, 
+      2, 
+      mean)
+```
+
+```{r ch06-predict-outcomes}
+o_model3 <- p_model3 %>%
+  # Group by row
+  rowwise() %>%
+  # Find the maximum value by row
+  mutate(max_p = max(c(ec, er, gc, gr, hp))) %>%
+  ungroup() %>%
+  # Find the column that matches the highest probability
+  transmute(outcome = case_when(max_p == ec ~ "ec",
+                             max_p == er ~ "er",
+                             max_p == gc ~ "gc",
+                             max_p == gr ~ "gr",
+                             max_p == hp ~ "hp"))
+```
+
+```{r ch06-table-predicted-outcomes}
+table(o_model3)
+```

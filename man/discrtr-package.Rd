@@ -4,9 +4,9 @@
 \name{discrtr-package}
 \alias{discrtr}
 \alias{discrtr-package}
-\title{discrtr: A companion package for the book Introduction to Discrete Choice Analysis with `R`}
+\title{discrtr: A Companion Package for the Book Discrete Choice Analysis with 'R'}
 \description{
-This package includes data files and supporting materials for the book.
+Provides templates and data files that complement the contents in the book.
 }
 \seealso{
 Useful links:

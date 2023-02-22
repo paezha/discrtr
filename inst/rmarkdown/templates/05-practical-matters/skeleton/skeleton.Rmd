@@ -1,0 +1,599 @@
+---
+title: "Code in Chapter 05: Practical Matters"
+author: "Antonio Paez and Genevieve Boisjoly"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r ch05-hello-world}
+print("Hats off to you, Prof. McFadden")
+```
+
+```{r ch05-load-packages, message=FALSE, cache=FALSE}
+library(discrtr) # A companion package for the book Introduction to Discrete Choice Analysis with `R` 
+library(dplyr) # A Grammar of Data Manipulation
+library(ggplot2) # Create Elegant Data Visualisations Using the Grammar of Graphics
+library(htmlwidgets) # HTML Widgets for R
+library(kableExtra) # Construct Complex Table with 'kable' and Pipe Syntax 
+library(mlogit) # Multinomial Logit Models 
+library(plotly) # Create Interactive Web Graphics via 'plotly.js' 
+library(stargazer) # Well-Formatted Regression and Summary Statistics Tables 
+library(tidyr) # Tidy Messy Data
+library(webshot2) # Take Screenshots of Web Pages
+```
+
+```{r ch05-load-and-rename-data}
+data("mc_commute_wide",
+     package = "discrtr") 
+```
+
+```{r ch05-example-of-wide-table}
+example_wide <- mc_commute_wide %>%
+  # Select columns from the table
+  select(id, choice, starts_with("time")) %>%
+  # Filter three decision-makers by their `id`
+  # Here the symbol `|` is for "or", so this reads
+  # filter rows with id == 566910139 OR id == 566873140 OR id == 566872636 
+  filter(id == 566910139 |
+           id == 566873140 |
+           id == 566872636)
+
+example_wide
+```
+
+```{r ch05-example-of-long-table}
+example_wide %>%
+  # `pivot_longer()` takes a wide table and makes it long
+  # Here we pivot the columns with the `time` variable 
+  pivot_longer(cols = starts_with("time."),
+               # There is a pattern to the names: time.ALTERNATIVE
+               # The prefix is the name of the variable
+               names_prefix = "time.",
+               # The alternatives are placed in a new column called
+               # "alternative"
+               names_to = "alternative",
+               # The values of the variables are consolidated in
+               # a single column called "time"
+               values_to = "time")
+```
+
+```{r ch05-reshape-example-data-table}
+example_long <- mc_commute_wide %>%
+  # Filter three decision-makers by their `id`
+  # Here the symbol `|` is for "or", so this reads
+  # filter rows with id == 566910139 OR id == 566873140 OR id == 566872636 
+  filter(id == 566910139 |
+           id == 566873140 |
+           id == 566872636) %>%
+  mlogit.data(shape="wide", 
+              # Name of column with the choices
+              choice = "choice", 
+              # Numbers of columns with attributes that vary by alternative
+              varying = 3:22)
+```
+
+```{r ch05-head-of-example-table}
+data.frame(example_long) %>%
+  # Select columns
+  select(id, 
+         choice, 
+         alt, 
+         starts_with("time"), 
+         idx) 
+```
+
+```r
+print(data.frame(mc_commute_long$idx))
+```
+
+```{r ch05-column-names}
+colnames(example_long)
+```
+
+```r
+?mc_commute_wide
+```
+```{r ch05-formula-1}
+# Function `mFormula()` is used to define multi-part formulas of the form:
+# y ~ x | z | w, which in the notation used for the anatomy of utility functions is
+# choice ~ alternative vars. with generic coefficients |
+#          individual vars. with specific coefficients |
+#          alternative vars. with specific coefficients 
+# In this formula time is one of x variables
+f1 <- mFormula(choice ~ time)
+```
+
+```{r ch05-model-matrix-1}
+# Pipe `f1` to next function
+f1 %>%
+  # Build the model matrix with data set `example_long`
+  model.matrix(example_long)
+```
+```{r ch05-formula-2}
+# Function `mFormula()` is used to define multi-part formulas of the form:
+# y ~ x | z | w, which in the notation used for the anatomy of utility functions is
+# choice ~ alternative vars. with generic coefficients |
+#          individual vars. with specific coefficients |
+#          alternative vars. with specific coefficients 
+# In this formula `time` is one of x variables and `sidewalk_density` is one of z variables
+f2 <- mFormula(choice ~ time | sidewalk_density)
+```
+
+```{r ch05-model-matrix-2}
+# Pipe `f2` to next function
+f2 %>%
+  # Build the model matrix with data set `example_long`
+  model.matrix(example_long)
+```
+
+```{r ch05-formula-3}
+f3 <- mFormula(choice ~ 0 | sidewalk_density | time)
+```
+
+```{r ch05-model-matrix-3}
+# Pipe `f2` to next function
+f3 %>%
+  # Build the model matrix with data set `example_long`
+  model.matrix(example_long)
+```
+
+```{r ch05-simple-example, echo=FALSE}
+# Create a toy data frame with six individuals, ids 1 through 6
+ts <- data.frame(Individual = c(1, 2, 3, 4, 5, 6),
+                 # These are the individual choices observed
+                 Choice = c("A", "A", "B", "A", "B", "B"), 
+                 # This is the indicator variable for choosing A
+                 yA = c(1, 1, 0, 1, 0, 0),
+                 # This is the indicator variable for choosing B
+                 yB = c(0, 0, 1, 0, 1, 1),
+                 # This is attribute x of alternative A
+                 xA = c(5, 2, 5, 1, 4, 3),
+                 # This is attribute x of alternative B
+                 xB = c(4, 5, 2, 6, 1, 4))
+
+# Display the table
+kable(ts, 
+      "latex",
+      booktabs = TRUE,
+      caption = "\\label{tab:toy-data-set} Toy data set to illustrate the likelihood function",
+      align = c("l", "c", "c", "c", "c", "c")) %>%
+  kable_styling(latex_options = c("striped"))
+```
+
+```{r ch05-likelihood-calculation-example-1}
+# Set the parameters:
+mu <- 0
+beta <- 0
+
+# Calculate probabilities. Notice that these are the logit probabilities
+# Individual 1
+P1A <- (exp(beta * ts$xA[1])/
+          (exp(beta * ts$xA[1]) + exp(mu + beta * ts$xB[1])))
+P1B <- 1 - P1A
+# Individual 2
+P2A <- (exp(beta * ts$xA[2])/
+          (exp(beta * ts$xA[2]) + exp(mu + beta * ts$xB[2])))
+P2B <- 1 - P2A
+# Individual 3
+P3A <- (exp(beta * ts$xA[3])/
+          (exp(beta * ts$xA[3]) + exp(mu + beta * ts$xB[3])))
+P3B <- 1 - P3A
+# Individual 4
+P4A <- (exp(beta * ts$xA[4])/
+          (exp(beta * ts$xA[4]) + exp(mu + beta * ts$xB[4])))
+P4B <- 1 - P4A
+# Individual 5
+P5A <- (exp(beta * ts$xA[5])/
+          (exp(beta * ts$xA[5]) + exp(mu + beta * ts$xB[5])))
+P5B <- 1 - P5A
+# Individual 6
+P6A <- (exp(beta * ts$xA[6])/
+          (exp(beta * ts$xA[6]) + exp(mu + beta * ts$xB[6])))
+P6B <- 1 - P6A
+
+# Calculate likelihood function as the product of all the probabilities
+# Each probability is raised to ynj
+L <-  P1A^ts$yA[1] * P1B^ts$yB[1] * 
+  P2A^ts$yA[2] * P2B^ts$yB[2] * 
+  P3A^ts$yA[3] * P3B^ts$yB[3] * 
+  P4A^ts$yA[4] * P4B^ts$yB[4] * 
+  P5A^ts$yA[5] * P5B^ts$yB[5] * 
+  P6A^ts$yA[6] * P6B^ts$yB[6] 
+
+# Create data frame to tabulate results:
+df_experiment_1 <- data.frame(Individual = c(1, 2, 3, 4, 5, 6),
+                              Choice = c("A", "A", "B", "A", "B", "B"),
+                              PA = c(P1A, P2A, P3A, P4A, P5A, P6A),
+                              PB = c(P1B, P2B, P3B, P4B, P5B, P6B))
+
+# Display table
+kable(df_experiment_1,
+      "latex", 
+      digits = 4, 
+      booktabs = TRUE,
+      align = c("l", "c", "c", "c")) %>%
+  kable_styling(bootstrap_options = c("striped", "hover")) %>%
+  footnote(general = paste("The value of the likelihood function in Example 1 is: ",
+                           round(L, digits = 4)))
+```
+
+```{r ch05-likelihood-calculation-example-2}
+# Set the parameters:
+mu <- 0.5
+beta <- -0.5
+
+# Calculate probabilities. Notice that these are the logit probabilities
+# Individual 1
+P1A <- (exp(beta * ts$xA[1])/
+          (exp(beta * ts$xA[1]) + exp(mu + beta * ts$xB[1])))
+P1B <- 1 - P1A
+# Individual 2
+P2A <- (exp(beta * ts$xA[2])/
+          (exp(beta * ts$xA[2]) + exp(mu + beta * ts$xB[2])))
+P2B <- 1 - P2A
+# Individual 3
+P3A <- (exp(beta * ts$xA[3])/
+          (exp(beta * ts$xA[3]) + exp(mu + beta * ts$xB[3])))
+P3B <- 1 - P3A
+# Individual 4
+P4A <- (exp(beta * ts$xA[4])/
+          (exp(beta * ts$xA[4]) + exp(mu + beta * ts$xB[4])))
+P4B <- 1 - P4A
+# Individual 5
+P5A <- (exp(beta * ts$xA[5])/
+          (exp(beta * ts$xA[5]) + exp(mu + beta * ts$xB[5])))
+P5B <- 1 - P5A
+# Individual 6
+P6A <- (exp(beta * ts$xA[6])/
+          (exp(beta * ts$xA[6]) + exp(mu + beta * ts$xB[6])))
+P6B <- 1 - P6A
+
+# Calculate likelihood function as the product of all the probabilities
+# Each probability is raised to ynj
+L <-  P1A^ts$yA[1] * P1B^ts$yB[1] * 
+  P2A^ts$yA[2] * P2B^ts$yB[2] * 
+  P3A^ts$yA[3] * P3B^ts$yB[3] * 
+  P4A^ts$yA[4] * P4B^ts$yB[4] * 
+  P5A^ts$yA[5] * P5B^ts$yB[5] * 
+  P6A^ts$yA[6] * P6B^ts$yB[6] 
+
+# Create data frame to tabulate results:
+df_experiment_2 <- data.frame(Individual = c(1, 2, 3, 4, 5, 6),
+                              Choice = c("A", "A", "B", "A", "B", "B"),
+                              PA = c(P1A, P2A, P3A, P4A, P5A, P6A),
+                              PB = c(P1B, P2B, P3B, P4B, P5B, P6B))
+
+# Display table
+kable(df_experiment_2,
+      "latex", 
+      digits = 4, 
+      booktabs = TRUE,
+      align = c("l", "c", "c", "c")) %>%
+  kable_styling(bootstrap_options = c("striped", "hover")) %>%
+  footnote(general = paste("The value of the likelihood function in Example 2 is: ",
+                           round(L, digits = 4)))
+```
+
+```{r ch05-create-likelihood-plot}
+# Create a grid to plot the likelihood function
+mu = seq(from = -1, to = 1, by = 0.05)
+beta = seq(from = -2, to = 0, by = 0.05)
+coeffs <- expand.grid(mu, beta)
+
+# Define the likelihood function
+lkh <- function(mu = 0, beta = 0){
+  ts <- data.frame(Individual = c(1, 2, 3, 4, 5, 6),
+                   Choice = c("A", "A", "B", "A", "B", "B"), 
+                   yA = c(1, 1, 0, 1, 0, 0),
+                   yB = c(0, 0, 1, 0, 1, 1),
+                   xA = c(5, 2, 5, 1, 4, 3),
+                   xB = c(4, 5, 2, 6, 1, 4))
+  
+  P1A <- (exp(beta * ts$xA[1])/
+            (exp(beta * ts$xA[1]) + exp(mu + beta * ts$xB[1])))
+  P1B <- 1 - P1A
+  P2A <- (exp(beta * ts$xA[2])/
+            (exp(beta * ts$xA[2]) + exp(mu + beta * ts$xB[2])))
+  P2B <- 1 - P2A
+  P3A <- (exp(beta * ts$xA[3])/
+            (exp(beta * ts$xA[3]) + exp(mu + beta * ts$xB[3])))
+  P3B <- 1 - P3A
+  P4A <- (exp(beta * ts$xA[4])/
+            (exp(beta * ts$xA[4]) + exp(mu + beta * ts$xB[4])))
+  P4B <- 1 - P4A
+  P5A <- (exp(beta * ts$xA[5])/
+            (exp(beta * ts$xA[5]) + exp(mu + beta * ts$xB[5])))
+  P5B <- 1 - P5A
+  P6A <- (exp(beta * ts$xA[6])/
+            (exp(beta * ts$xA[6]) + exp(mu + beta * ts$xB[6])))
+  P6B <- 1 - P6A
+  
+  P1A^ts$yA[1] * P1B^ts$yB[1] * 
+    P2A^ts$yA[2] * P2B^ts$yB[2] * 
+    P3A^ts$yA[3] * P3B^ts$yB[3] * 
+    P4A^ts$yA[4] * P4B^ts$yB[4] * 
+    P5A^ts$yA[5] * P5B^ts$yB[5] * 
+    P6A^ts$yA[6] * P6B^ts$yB[6] 
+}
+
+# Evaluate the likelihood function on the grid
+L <- lkh(mu = coeffs$Var1, beta = coeffs$Var2)
+
+L <- data.frame(mu = coeffs$Var1, beta = coeffs$Var2, L)
+L <- xtabs(L ~ beta + mu, L) %>% # Convert to cross-tabulation matrix
+  unclass() # Drop the xtabs class (plotly does not like it)
+
+likelihood_plot <- plot_ly(z = ~L, x = ~mu, y = ~beta) %>% 
+  add_surface() %>%
+  layout(scene = list(
+    xaxis = list(title = "x-axis (mu)"),
+    yaxis = list(title = "y-axis (beta)"),
+    zaxis = list(title = "$z$-axis (L)")))
+```
+
+```{r ch05-display-static-likelihood-plot, echo = FALSE, message=FALSE, warning = FALSE, fig.cap= "\\label{fig:fig-likelihood-function}Likelihood function for toy data set"}
+# This code takes a screen capture of the figure to include it in the 
+# pdf file when knitting
+#htmlwidgets::saveWidget(widget = likelihood_plot, 
+#                        file = "likelihood_plot.html")
+#webshot2::webshot(url = "likelihood_plot.html", 
+#                  file = "likelihood_plot.png", 
+#                  delay = 1, 
+#                  zoom = 4, 
+#                  vheight = 500)
+```
+
+```{r ch05-display-likelihood-plot}
+# This code displays the figure in the Rmd document 
+# but is not run for knitting to pdf
+likelihood_plot
+```
+
+```{r ch05-parameter-search}
+# Approximate values that maximize the likelihood function.
+mu <- 0.10
+beta <- -0.65
+
+# Calculate probabilities. Notice that these are the logit probabilities
+# Individual 1
+P1A <- (exp(beta * ts$xA[1])/
+          (exp(beta * ts$xA[1]) + exp(mu + beta * ts$xB[1])))
+P1B <- 1 - P1A
+# Individual 2
+P2A <- (exp(beta * ts$xA[2])/
+          (exp(beta * ts$xA[2]) + exp(mu + beta * ts$xB[2])))
+P2B <- 1 - P2A
+# Individual 3
+P3A <- (exp(beta * ts$xA[3])/
+          (exp(beta * ts$xA[3]) + exp(mu + beta * ts$xB[3])))
+P3B <- 1 - P3A
+# Individual 4
+P4A <- (exp(beta * ts$xA[4])/
+          (exp(beta * ts$xA[4]) + exp(mu + beta * ts$xB[4])))
+P4B <- 1 - P4A
+# Individual 5
+P5A <- (exp(beta * ts$xA[5])/
+          (exp(beta * ts$xA[5]) + exp(mu + beta * ts$xB[5])))
+P5B <- 1 - P5A
+# Individual 6
+P6A <- (exp(beta * ts$xA[6])/
+          (exp(beta * ts$xA[6]) + exp(mu + beta * ts$xB[6])))
+P6B <- 1 - P6A
+
+# Calculate likelihood function as the product of all the probabilities
+# Each probability is raised to ynj
+L <-  P1A^ts$yA[1] * P1B^ts$yB[1] * 
+  P2A^ts$yA[2] * P2B^ts$yB[2] * 
+  P3A^ts$yA[3] * P3B^ts$yB[3] * 
+  P4A^ts$yA[4] * P4B^ts$yB[4] * 
+  P5A^ts$yA[5] * P5B^ts$yB[5] * 
+  P6A^ts$yA[6] * P6B^ts$yB[6] 
+
+# Create data frame to tabulate results:
+df_approx_solution <- data.frame(Individual = c(1, 2, 3, 4, 5, 6),
+                                 Choice = c("A", "A", "B", "A", "B", "B"),
+                                 PA = c(P1A, P2A, P3A, P4A, P5A, P6A),
+                                 PB = c(P1B, P2B, P3B, P4B, P5B, P6B))
+
+# Join tables for displaying results
+df <- df_experiment_1 %>%
+  left_join(df_experiment_2,
+            by = c("Individual", "Choice")) %>%
+  left_join(df_approx_solution,
+            by = c("Individual", "Choice"))
+
+# Display table
+kable(df,
+      "latex",
+      digits = 4, 
+      booktabs = TRUE,
+      col.names = c("Individual", "Choice", "PA", "PB", "PA", "PB", "PA", "PB"),
+      align = c("l", "c", "c", "c", "c", "c", "c", "c")) %>%
+  kable_styling(latex_options = c("striped")) %>%
+  add_header_above(c(" " = 1, " " = 1,
+                     "Experiment 1" = 2, 
+                     "Experiment 2" = 2, 
+                     "Approx Max Likelihood" = 2))
+```
+
+```{r ch05-reshape-full-table}
+mc_commute_long <- mc_commute_wide %>%
+  mlogit.data(shape="wide", 
+              # Name of column with the choices
+              choice = "choice", 
+              # Numbers of columns with attributes that vary by alternative
+              varying = 3:22)
+```
+
+```{r ch05-formula-classes}
+class(f1)
+class(f2)
+class(f3)
+```
+
+```{r ch05-summary-model-1}
+# Function `mlogit()` is used to estimate logit models
+# It needs a multi-part formula and a data set in long form
+model1 <- mlogit(f1,
+                 mc_commute_long)
+
+# Function `summary()` give the summary of data objects,
+# including the output of model estimation algorithms
+summary(model1)
+```
+
+```{r summary-model-1-stargazer, results="asis"}
+# Note: use chunk option results="asis" to display latex output in pdf
+stargazer::stargazer(model1, 
+                     # Use type = "text", "latex". or "html" depending
+                     # on the desired output
+                     type ="latex",
+                     header = FALSE,
+                     single.row = TRUE,
+                     title = "Estimation results: Model 1")
+```
+
+```{r ch05-summary-model-2-stargazer, results="asis"}
+# Note: use chunk option results="asis" to display latex output in pdf
+model2 <- mlogit(f2, 
+                 mc_commute_long)
+
+stargazer::stargazer(model2,
+                     # Use type = "text", "latex". or "html" depending
+                     # on the desired output
+                     type = "latex",
+                     header = FALSE,
+                     single.row = TRUE,
+                     title = "Estimation results: Model 2")
+```
+
+```{r ch05-summary-model-2-change-of-reference, results="asis"}
+# Note: use chunk option results="asis" to display latex output in pdf
+model2 <- mlogit(f2,
+                 mc_commute_long, 
+                 # Specify the alternative that acts as reference
+                 reflevel = "Walk")
+
+stargazer::stargazer(model2, 
+                     # Use type = "text", "latex". or "html" depending
+                     # on the desired output
+                     type = "latex",
+                     header = FALSE,
+                     single.row = TRUE,
+                     title = "Estimation results: Model 2 (alternative: Walk)")
+```
+
+```{r ch05-summary-sidewalk-density}
+summary(mc_commute_long$sidewalk_density)
+```
+
+```{r ch05-create-matrix-to-predict}
+mc_commute_predict <- mc_commute_long[1:52,]
+```
+
+```{r ch05-set-values-for-predictions}
+# Function `rep()` repeats the values in the argument a designated
+# number of times; here, the values in the sequence 0 to 60 in intervals
+# of 5 are repeated four times each (once for each alternative)
+mc_commute_predict$sidewalk_density <- rep(seq(from = 0,
+                                               to = 60,
+                                               by = 5), 
+                                           each = 4)
+```
+
+```{r ch05-head-of-prediction-matrix}
+mc_commute_predict %>%
+  data.frame() %>%
+  select(sidewalk_density) %>%
+  slice_head(n = 8)
+```
+
+```{r ch05-median-commute-time}
+median(mc_commute_predict$time, 
+       na.rm = TRUE)
+```
+
+```{r ch05-set-time-for-prediction}
+mc_commute_predict$time <- 10
+```
+
+```{r ch05-head-prediction-matrix}
+mc_commute_predict %>%
+  data.frame() %>%
+  select(time, sidewalk_density) %>%
+  summary()
+
+mc_commute_predict %>%
+  data.frame() %>%
+  select(time, sidewalk_density) %>%
+  slice_head(n = 8)
+```
+
+```{r ch05-predict-probabilities-model-2}
+probs <- predict(model2, 
+                 newdata = mc_commute_predict)
+```
+
+```{r ch05-view-probabilities}
+print(probs)
+```
+
+```{r ch05-reshape-table}
+probs <- data.frame(sidewalk_density = seq(from = 0,
+                                           to = 60, 
+                                           by = 5), 
+                    probs) %>% 
+  # Pivot longer all columns _except_ `sidewalk_density`
+  pivot_longer(cols = -sidewalk_density,
+               # The column names become a new column called "Mode"
+               names_to = "Mode",
+               # The values are gathered into a single column called
+               # "Probability"
+               values_to = "Probability")
+```
+
+```{r view-probabilities}
+probs %>%
+  slice_head(n = 8)
+```
+
+```{r ch05-probability-plot}
+probs %>%
+  # Create ggplot object; map `sidewalk_density` to the y-axis
+  # `Probability` to the x-axis, and the color of geometric
+  # objects to `Mode`
+  ggplot(aes(x = sidewalk_density, 
+             y = Probability,
+             color = Mode)) +
+  # Add geometric object of type line with size = 1
+  geom_line(size = 1) +
+  labs(y="Probability", 
+       x = expression("Sidewalk density (km/km"^2*")")) 
+```
+
+```{r ch05-market-shares-model, results="asis"}
+f0 <- mFormula(choice ~ 1)
+
+model0 <- mlogit(f0, 
+                 mc_commute_long)
+
+stargazer::stargazer(model0,
+                     # Use type = "text", "latex". or "html" depending
+                     # on the desired output
+                     type = "latex",
+                     header = FALSE,
+                     single.row = TRUE,
+                     title = "Estimation results: Market Shares Model (Null Model)")
+```
+
+```{r ch05-rho-2-Model-2}
+1 - as.numeric(model2$logLik)/as.numeric(model0$logLik)
+```
+
+```{r ch05-likelihood-ratio-test-1-2}
+lrtest(model1, 
+       model2)
+```

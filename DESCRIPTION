@@ -1,6 +1,6 @@
 Package: discrtr
-Title: A companion package for the book Introduction to Discrete Choice Analysis with `R`
-Version: 0.0.0.9700
+Title: A Companion Package for the Book Discrete Choice Analysis with 'R'
+Version: 0.0.1
 Authors@R: 
     c(person(given = "Antonio",
            family = "Paez",
@@ -12,18 +12,18 @@ Authors@R:
            role = c("aut"),
            email = "gboisjoly@polymtl.ca",
            comment = c(ORCID = "0000-0001-5375-7750")))
-Description: This package includes data files and supporting materials for the book.
+Description: Provides templates and data files that complement the contents in the book.
 License: MIT + file LICENSE
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
-RoxygenNote: 7.1.2
+RoxygenNote: 7.2.3
 URL: https://github.com/paezha/discrtr
 BugReports: https://github.com/paezha/discrtr/issues
 Depends: 
     R (>= 2.10)
 LazyData: true
 Imports: 
-    magrittr,
+    magrittr
+Suggests: 
     dfidx,
-    readr,
-    dplyr
+    readr

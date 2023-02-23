@@ -1,0 +1,282 @@
+---
+title: "Code in Chapter 01: Data, Models and Software"
+author: "Antonio Paez and Genevieve Boisjoly"
+output:
+  rmdformats::robobook:
+    highlight: kate
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r ch01-fig-conceptual-model-a, fig.align = "center", fig.cap= "\\label{fig:conceptual-model-a}Example of a Conceptual Model (adapted from Fig. 15.1 in Greed, 2000)", echo=FALSE}
+knitr::include_graphics(rep("figures/01-Figure-1a.png"))
+```
+
+```{r ch01-fig-conceptual-model-b, fig.align = "center", fig.cap= "\\label{fig:conceptual-model-b}Example of a Conceptual Model (adapted from Fig. 1.2 in Ortúzar and Willumsen, 2011)", echo=FALSE}
+knitr::include_graphics(rep("figures/01-Figure-1b.png"))
+```
+
+```{r ch01-hello-world}
+# Function `print()` displays the argument on the screen. 
+# `print()` is a generic method in `R` which means that many types
+# of objects can be printed, including a string as in the example
+# below:
+print("Hello, Discrete Choice Analysis!")
+```
+
+```{r ch01-clear-workspace}
+# Function `rm()` removes objects from the _environment_
+# that is objects currently in memory. The argument list = ls()
+# removes all objects currently in memory
+rm(list = ls())
+```
+
+```{r ch01-load-packages, message=FALSE, cache=FALSE}
+library(discrtr) # A companion package for the book Introduction to Discrete Choice Analysis with `R`
+library(dplyr) # A Grammar of Data Manipulation
+library(ggplot2) # Create Elegant Data Visualisations Using the Grammar of Graphics
+library(mlogit) # Multinomial Logit Models 
+library(readr) # Read Rectangular Text Data 
+library(stargazer) # Well-Formatted Regression and Summary Statistics Tables
+```
+
+```{r ch01-read-mac-mode-choice, message=FALSE}
+# Read a csv file data and name the object
+mc_mode_choice <- read_csv(system.file("extdata", 
+                                       "mc_commute.csv", 
+                                       package = "discrtr"),
+                           show_col_types = FALSE)
+```
+
+```{r ch01-head-mac-mode-choice}
+# `head()` displays the first few rows of a data object
+# Indexing of the object in this example is used to display
+# only columns 1 through 4
+head(mc_mode_choice[,1:4]) 
+```
+
+```{r ch01-summary-mac-mode-choice, include=FALSE}
+# Display the summary statistics of a data object.
+# Function `summary()` is also a generic method in `R` and
+# can be used to display important elements of the object
+summary(mc_mode_choice) 
+```
+
+```{r ch01-summary-mac-mode-choice-2, results='asis'}
+# `stargazer()` takes as an input a data frame
+stargazer(as.data.frame(mc_mode_choice[,1:5]), 
+          # change the type to text, html, or latex depending on the desired output
+          type = "latex", 
+          header = FALSE, # do not print package version info in the output
+          title = "Example of a table with summary statistics", # Title of table
+          omit.summary.stat = c("N", 
+                                "median"), # summary statistics to omit from output
+          font.size = "small") # font size can be changed
+```
+
+```{r ch01-example-indexing}
+# Indexing allows us to choose parts of a data object
+# In this example, we are extracting the first row of
+# column `choice` in table `mc_mode_choice` and then
+# The fourth row of the same column
+mc_mode_choice$choice[1] - mc_mode_choice$choice[4]
+```
+
+```{r ch01-convert-to-factor}
+# Function `factor()` is used to convert a variable (which could be character or numeric)
+# into a factor, that is, a label or category; when we want a factor to be ordered (treated
+# as an ordinal variable) we specify argument ordered = TRUE. Non-ordinal variables by default
+# are displayed alphabetically, but changing their order when  specifying the labels changes
+# the order they are displayed _without necessarily making them ordinal_
+mc_mode_choice$choice <- factor(mc_mode_choice$choice, 
+                                labels = c("Cycle", 
+                                           "Walk", 
+                                           "HSR", 
+                                           "Car"))
+```
+
+```{r ch01-summary-choices}
+summary(mc_mode_choice$choice)
+```
+
+```{r ch01-factor-operation-is-wrong}
+mc_mode_choice$choice[1] - mc_mode_choice$choice[4]
+```
+
+```{r ch01-summary-time-cycle}
+summary(mc_mode_choice$timecycle)
+```
+
+```{r ch01-class-data}
+# Find the class of an object
+class(mc_mode_choice$choice)
+class(mc_mode_choice$timecycle)
+```
+
+```{r ch01-more-indexing}
+mc_mode_choice[2, 2]
+```
+
+```{r ch01-more-indexing-2}
+mc_mode_choice$choice[2]
+```
+
+```{r ch01-more-indexing-3}
+mc_mode_choice[["choice"]][2]
+```
+
+```{r ch01-more-indexing-4}
+mc_mode_choice[2:5, 7:8]
+```
+
+```{r ch01-coding-missing-observations}
+time.Cycle.clean <- mc_mode_choice$timecycle[mc_mode_choice$timecycle != 100000]
+```
+
+```{r ch01-class-cycle-time}
+class(time.Cycle.clean)
+```
+
+```{r ch01-summary-cycle-clean}
+summary(time.Cycle.clean)
+```
+
+```{r ch01-filtering-example}
+time.Active.clean <- mc_mode_choice %>% # Pipe data frame `mc_mode_choice`
+  select(c("timecycle", # Select columns from the data frame that was piped
+           "timewalk")) %>% 
+  filter(timecycle != 100000 & timewalk != 100000) # Filter observations that are _not_ 100000
+```
+
+```{r ch01-filtering-example-2}
+time.Active.clean.the.hard.way <- mc_mode_choice[mc_mode_choice$timecycle != 100000 & 
+                                                   mc_mode_choice$timewalk != 100000, 7:8]
+```
+
+```{r ch01-summary-comparisons}
+summary(time.Active.clean)
+summary(time.Active.clean.the.hard.way)
+```
+
+```{r ch01-summary-time-clean}
+summary(time.Active.clean)
+```
+
+```{r ch01-plot-time-active}
+ggplot(data = time.Active.clean) + 
+  geom_area(aes(x = timecycle),
+            stat = "bin", 
+            binwidth = 5, 
+            fill = "blue", 
+            color = "blue", 
+            alpha = 0.6) +
+  geom_area(aes(x = timewalk), 
+            stat = "bin", 
+            binwidth = 5, 
+            fill = "yellow", 
+            color = "yellow", 
+            alpha = 0.6)
+```
+
+```{r ch01-plotting-step-1}
+# Initialize a `ggplot` object that will use table `time.Active.clean` 
+# as an input, and name it `p`
+p <- ggplot(data = time.Active.clean)
+```
+
+```{r ch01-plotting-step-2}
+# By typing the name of a ggplot object, the default 
+# behavior is to render it
+p
+```
+
+```{r ch01-plotting-step-3}
+p + 
+  # Add a geometric object of type area to the plot
+  # Map the variable `timecycle` to the x-axis. Notice
+  # that the y-axis is a calculated statistic, the count
+  # of cases (returned by stat =bin), so we do not need
+  # to specify it
+  geom_area(aes(x = timecycle), 
+            stat = "bin", 
+            # The bindwidth controls the size of the bins
+            # needed to count the number of cases at levels
+            # of the variable mapped to the x-axis
+            binwidth = 5)
+```
+
+```{r ch01-plotting-step-4}
+p + 
+  geom_area(aes(x = timecycle), 
+            stat = "bin", 
+            binwidth = 5, 
+            # fill controls the color of the polygon
+            fill = "blue", 
+            # color controls the color of the perimeter
+            # of the polygon or of lines more generally
+            color = "black", 
+            alpha = 0.6)
+```
+
+```{r ch01-plotting-step-5}
+ggplot(data = time.Active.clean) + 
+  geom_area(aes(x = timecycle),
+            stat = "bin",
+            binwidth = 5,
+            fill = "blue", 
+            color = "black", 
+            alpha = 0.6) +
+  # We can plot a second geometric element to the x-axis
+  # using a different variable from the same table
+  geom_area(aes(x = timewalk),
+            stat = "bin", 
+            binwidth = 5,
+            fill = "yellow",
+            color = "black",
+            alpha = 0.6)
+```
+
+```{r ch01-plotting-step-6}
+ggplot(data = time.Active.clean) + 
+  geom_area(aes(x = timecycle),
+            stat = "bin",
+            binwidth = 5, 
+            fill = "blue", 
+            color = "black", 
+            alpha = 0.6) +
+  geom_area(aes(x = timewalk), 
+            stat = "bin", 
+            binwidth = 5, 
+            fill = "yellow", 
+            color = "black",
+            alpha = 0.6) +
+  xlab("Time (in minutes)")
+```
+
+```{r ch01-summary-choice}
+# The pipe operator `%>%` takes an object and passes it on
+# to the next function where it is used as the first argument
+mc_mode_choice %>% 
+  # `select()` retrieves columns from a data frame
+  select(c("choice", "side_den")) %>%
+  summary()
+```
+
+```{r ch01-boxplot}
+# Pipe the table to `ggplot()` where it is assumed to be the
+# first argument of the function, i.e., data
+mc_mode_choice %>%
+  # Map `choice` to the x-axis and `side_den` to the y-axis
+ggplot(aes(x = choice, 
+           y = side_den)) + 
+  # Add a geometric object of type boxplot
+  geom_boxplot()
+```
+
+```{r ch01-exercise-load-data, eval=FALSE}
+library(mlogit)
+data("Mode")
+```
+

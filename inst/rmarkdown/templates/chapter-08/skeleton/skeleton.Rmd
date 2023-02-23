@@ -1,0 +1,285 @@
+---
+title: "Code in Chapter 08: Non-Proportional Substitution Patterns II: The Probit Model"
+author: "Antonio Paez and Genevieve Boisjoly"
+output:
+  rmdformats::robobook:
+    highlight: kate
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r ch08-load-packages, message=FALSE, cache=FALSE}
+library(dplyr) # A Grammar of Data Manipulation
+library(ggplot2) # Create Elegant Data Visualisations Using the Grammar of Graphics
+library(kableExtra) # Construct Complex Table with 'kable' and Pipe Syntax
+library(mlogit) # Multinomial Logit Models
+```
+
+```{r ch08-load-data}
+data("Heating")
+```
+
+```{r ch08-prepare-data}
+H <- mlogit.data(Heating, 
+                 shape = "wide", 
+                 choice = "depvar", 
+                 varying = c(3:12))
+```
+
+```{r ch08-hello-world}
+print("If you are always trying to be normal, you will never know how amazing you can be.")
+```
+
+```{r ch08-curve-for-simulation-example}
+norm_pdf <- data.frame(x = seq(0.2, 
+                               1.2, 
+                               0.01)) %>%
+  mutate(f = dnorm(x, 
+                   mean = 0, 
+                   sd = 0.5))
+```
+
+```{r ch08-plot-curve-for-simulation-example, fig.cap= "\\label{fig:fig-setup-for-simulation-example}A segment of the normal curve with mean of zero and standard deviation 0.5"}
+ggplot(data = norm_pdf,
+       aes(x = x, y = f)) +
+  geom_rect(aes(xmin = 0.2, xmax = 1.2,
+                ymin = 0.0, ymax = max(f)),
+            fill = NA,
+            color = "black") +
+  geom_line() + 
+  theme(axis.text = element_text(size = 6))
+```
+
+```{r ch08-simulation-setup}
+# Set seed for replicability (this defines a starting number from which the sequence of random numbers is generated )
+set.seed(35739)
+
+# Set number of random draws
+r <- 100
+sim_pdf <- data.frame(x = runif(r, 
+                                # Draw values with uniform probability in the 
+                                # interval of xmin and xmax
+                                min(norm_pdf$x),
+                                max(norm_pdf$x)), 
+                      fsim = runif(r, 
+                                   # Draw values with uniform probability in the
+                                   # interval between zero and fmax
+                                   0,
+                                   max(norm_pdf$f)))
+
+# Clear the seed
+set.seed(NULL)  
+```
+
+```{r ch08-simulation}
+sim_pdf <- sim_pdf %>%
+  mutate(f = dnorm(x, 
+                   mean = 0, 
+                   sd = 0.5),
+         status = ifelse(fsim <= f, 
+                         "accept", 
+                         "reject"))
+```
+
+```{r ch08-plotting-simulation-results}
+ggplot(data = norm_pdf,
+       aes(x = x, y = f)) +
+  geom_point(data = sim_pdf,
+             aes(x = x, y = fsim, 
+                 color = status,
+                 shape = status))  +
+  geom_line() +
+  geom_rect(aes(xmin = 0.2, xmax = 1.2,
+                ymin = 0.0, ymax = max(f)),
+            fill = NA,
+            color = "black") 
+```
+
+```{r ch08-quality-of-simulation}
+# Proportion of "accepted" draws
+prop_accept <- sim_pdf %>% filter(status == "accept") %>% nrow()/r
+
+# Approximation of area under the curve
+(max(norm_pdf$x) - min(norm_pdf$x)) * max(norm_pdf$f) * (prop_accept)
+      
+# Exact area
+pnorm(max(norm_pdf$x), 
+      mean = 0, 
+      sd = 0.5) - pnorm(min(norm_pdf$x), 
+                        mean = 0, 
+                        sd = 0.5)
+```
+
+```{r ch08-mnl-chapter-06}
+# Time the process
+start_time_mnl <- Sys.time()
+
+model3 <- mlogit(depvar ~ ic + oc, 
+                 Heating, 
+                 reflevel = "gc",
+                 shape = "wide", 
+                 choice = "depvar",  
+                 varying = c(3:12))
+
+# Time the process
+end_time_mnl <- Sys.time()
+estimation_time_mnl <- end_time_mnl - start_time_mnl
+```
+
+```{r ch08-nested-logit-from-chapter-07}
+# Time the process
+start_time_nl <- Sys.time()
+
+nl2 <- mlogit(depvar ~ ic + oc, 
+              H, 
+              reflevel = "gc",
+              nests = list(room = c( 'er', 'gr'), 
+                           central = c('ec', 'gc', 'hp')),
+              un.nest.el = TRUE, 
+              steptol = 1e-12)
+
+# Time the process
+end_time_nl <- Sys.time()
+estimation_time_nl <- end_time_nl - start_time_nl
+```
+
+```{r ch08-probit-1, results="asis", cache=TRUE}
+# Time the process
+start_time_prob1 <- Sys.time()
+
+prob1 <- mlogit(depvar ~ ic + oc, 
+                H, 
+                reflevel = "gc", 
+                probit = TRUE, 
+                seed = 3245,
+                R = 50)
+
+# Time the process
+end_time_prob1 <- Sys.time()
+estimation_time_prob1 <- end_time_prob1 - start_time_prob1
+
+stargazer::stargazer(prob1, 
+                     header = FALSE,
+                     single.row = TRUE,
+                     title = "Estimation results: Multinomial Probit Model 1")
+
+```
+
+```{r ch08-probit-1-covariance}
+# Initialize a 4-by-4 matrix for the covariance terms
+L1 <- matrix(0, 4, 4)
+
+# Assign the coefficients to the matrix (lower part)
+L1[!upper.tri(L1)] <- c(1, coef(prob1)[7:15])
+
+# Multiply the lower part matrix by its transpose to fill the upper diagonal
+L1 %*% t(L1)
+```
+
+```{r ch08-copy-data-for-simulation}
+H_increase <- H
+```
+
+```{r ch08-simulate-scenario}
+H_increase[H_increase$alt == "gc", "ic"] <- 1.15 * H_increase[H_increase$alt == "gc", "ic"]
+```
+
+```{r ch08-mnlogit-example}
+scenario_mnl <- data.frame(Policy = c("Do nothing", "15% increase"),
+           rbind(apply(predict(model3,
+                               newdata = H),
+                       2, 
+                       mean),
+                 apply(predict(model3,
+                               newdata = H_increase),
+                       2, 
+                       mean)))
+
+scenario_mnl
+```
+
+```{r ch08-mnlogit-share-change}
+Ratios_mnlogit <- data.frame((scenario_mnl[2,2:6] - scenario_mnl[1,2:6])/scenario_mnl[1,2:6] * 100)
+row.names(Ratios_mnlogit) <- c("Percentage change in shares")  
+Ratios_mnlogit
+```
+
+```{r ch08-nlogit-example}
+scenario_nl <- data.frame(Policy = c("Do nothing", "15% increase"),
+                       rbind(apply(predict(nl2, newdata = H), 2, mean),
+                             apply(predict(nl2, newdata = H_increase), 2, mean)))
+
+scenario_nl
+```
+
+```{r ch08-nlogit-share-change}
+Ratios_nlogit <- data.frame((scenario_nl[2,2:6] - 
+                               scenario_nl[1,2:6])/scenario_nl[1,2:6] * 100)
+row.names(Ratios_nlogit) <- c("Percentage change in shares")  
+Ratios_nlogit
+```
+
+```{r ch08-probit1-probabilities}
+scenario_prob1 = data.frame(Policy = c("Do nothing", "15% increase"),
+                         rbind(apply(predict(prob1, 
+                                             newdata = H), 
+                                     2, 
+                                     mean),
+                               apply(predict(prob1, 
+                                             newdata = H_increase),
+                                     2, 
+                                     mean)))
+scenario_prob1
+```
+
+```{r ch08-probit1-share-change}
+Ratios_probit <- data.frame((scenario_prob1[2,2:6] - 
+                               scenario_prob1[1,2:6])/scenario_prob1[1,2:6] * 100)
+row.names(Ratios_probit) <- c("Ratio of probabilities")  
+Ratios_probit
+
+```
+
+```{r ch08-probit-2, results="asis", cache=TRUE}
+# Time the process
+start_time_prob2 <- Sys.time()
+
+prob2 <- mlogit(depvar ~ ic + oc, 
+                H, 
+                reflevel = "gc", 
+                probit = TRUE, 
+                seed = 3245,
+                R = 150)
+
+# Time the process
+end_time_prob2 <- Sys.time()
+estimation_time_prob2 <- end_time_prob2 - start_time_prob2
+
+stargazer::stargazer(prob2, 
+                     header = FALSE,
+                     single.row = TRUE,
+                     title = "Estimation results: Multinomial Probit Model 2")
+```
+
+```{r ch08-probit-3, results="asis", cache = TRUE}
+# Time the process
+start_time_prob3 <- Sys.time()
+
+prob3 <- mlogit(depvar ~ ic + oc, 
+                H, 
+                reflevel = "gc", 
+                probit = TRUE, 
+                seed = 3246,
+                R = 50)
+
+# Time the process
+end_time_prob3 <- Sys.time()
+estimation_time_prob3 <- end_time_prob3 - start_time_prob3
+
+stargazer::stargazer(prob3, 
+                     header = FALSE,
+                     single.row = TRUE,
+                     title = "Estimation results: Multinomial Probit Model 3")
+```

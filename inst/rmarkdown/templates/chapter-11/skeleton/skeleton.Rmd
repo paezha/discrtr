@@ -1,0 +1,681 @@
+---
+title: "Code in Chapter 11: Models for Ordinal Responses"
+author: "Antonio Paez and Genevieve Boisjoly"
+output:
+  rmdformats::robobook:
+    highlight: kate
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r ch11-hello-world}
+print("Too late to cry, too soon to laugh...")
+```
+
+```{r ch11-load-packages, message=FALSE}
+library(discrtr) # A companion package for the book Introduction to Discrete Choice Analysis with `R` 
+library(dplyr) # A Grammar of Data Manipulation
+library(ggplot2) # Create Elegant Data Visualisations Using the Grammar of Graphics
+library(ggridges) # Ridgeline Plots in 'ggplot2'
+library(kableExtra) # Construct Complex Table with 'kable' and Pipe Syntax
+library(mvord) # Multivariate Ordinal Regression Models
+library(ordinal) # Regression Models for Ordinal Data
+library(plyr) # Tools for Splitting, Applying and Combining Data
+library(tidyr) # Tidy Messy Data
+```
+
+```{r ch11-load-data}
+data("mc_attitudes",
+     package = "discrtr")
+```
+
+```{r ch11-summary-attitudinal-variables}
+mc_attitudes %>%
+  select(Community:Travel_Alone) %>%
+  summary()
+```
+
+```{r ch11-plot-logistic-distribution}
+df <- data.frame(x = rep(seq(-6, 6, 0.1))) %>%
+  mutate(f = dlogis(x, 
+                    location = 0,
+                    scale = 1))
+
+ggplot() +
+  geom_area(data = df,
+            aes(x = x, 
+                y = f),
+            color = "black",
+            fill = "orange",
+            alpha = 0.5) 
+```
+
+```{r ch11-plot-logistic-distribution-area-under-curve-Strongly-Disagree}
+df <- data.frame(x = rep(seq(-6, 6, 0.1))) %>%
+  mutate(f = dlogis(x, 
+                    location = 0,
+                    scale = 1))
+
+ggplot() +
+  geom_area(data = df,
+            aes(x = x, 
+                y = f),
+            color = "black",
+            fill = "orange",
+            alpha = 0.5) +
+  geom_area(data = df %>%
+              filter(x <= -3),
+            aes(x = x, 
+                y = f),
+            color = "black",
+            fill = "orange",
+            alpha = 1) + 
+  geom_vline(xintercept = -3)
+
+```
+
+```{r ch11-plot-logistic-distribution-area-under-curve-Disagree}
+ggplot() +
+  geom_area(data = df,
+            aes(x = x, 
+                y = f),
+            color = "black",
+            fill = "orange",
+            alpha = 0.5) +
+  geom_area(data = df %>%
+              filter(x >= -3 & x <= -0.5),
+            aes(x = x, 
+                y = f),
+            color = "black",
+            fill = "orange",
+            alpha = 1) + 
+  geom_vline(xintercept = c(-3, -0.5))
+```
+
+```{r ch11-plot-logistic-distribution-all-thresholds}
+df <- data.frame(x = rep(seq(-6, 6, 0.1))) %>%
+  mutate(f = dlogis(x, 
+                    location = 0))
+
+lj <- c(-2, -0.5, 1.5, 4)
+
+ggplot() +
+  geom_area(data = df,
+            aes(x = x, 
+                y = f),
+            color = "black",
+            fill = "orange",
+            alpha = 0.5) +
+  geom_area(data = df %>%
+              filter(x >= lj[3] & x <= lj[4]),
+            aes(x = x, 
+                y = f),
+            color = NA,
+            fill = "orange",
+            alpha = 1) +
+  geom_vline(xintercept = lj) +
+  geom_text(aes(label = c("SD", "D", "N", "A", "SA"),
+                x = c(-3, lj + 0.25)), 
+            y = 0.0075) +
+  scale_x_continuous(breaks = lj, 
+                     labels = expression(lambda[1], 
+                                         lambda[2], 
+                                         lambda[3], 
+                                         lambda[4]))
+```
+
+```{r ch11-model-sense-of-community, warning=FALSE}
+mod_community_clm <- clm(Community ~ age + vehicle + 
+                           Rate_Non_Canadian + Rate_Public, 
+                         data = mc_attitudes)
+
+summary(mod_community_clm)
+```
+
+```{r ch11-model-sense-of-community-convergence-check}
+mod_community_clm$convergence
+```
+
+```{r ch11-retrieve-coefficients-model-community}
+# Coefficients of the utility function
+beta_n <- mod_community_clm$coefficients[5:8]
+
+# Thresholds
+l_j <- mod_community_clm$coefficients[1:4]
+```
+
+```{r ch11-profile-1}
+# Profile 1: Age = 21, No vehicle, other variables at zero
+p1 <- c(21, 
+        0, 
+        0,
+        0)
+```
+
+```{r ch11-profile-2}
+# Age = 21, vehicle, other variables at zero
+p2 <- c(21, 
+        1, 
+        0,
+        0)
+```
+
+```{r ch11-utility-functions-profiles-1-and-2}
+V_1 <- beta_n %*% p1
+V_2 <- beta_n %*% p2
+```
+
+```{r ch11-logistic-distribution-profiles-1-and-2}
+# Calculate the values of the logistic distribution for profile 1 in the range defined by x
+dV_1 <- data.frame(x = rep(seq(-2.9, 4.4, 0.1)), 
+                   profile = "Profile 1") %>%
+  mutate(f = dlogis(x, 
+                    location = V_1))
+
+# Calculate the values of the logistic distribution for profile 2 in the range defined by x
+dV_2 <- data.frame(x = rep(seq(-2.9, 4.4, 0.1)), 
+                   profile = "Profile 2") %>%
+  mutate(f = dlogis(x, 
+                    location = V_2))
+
+# Bind the distributions for the two profiles
+dV <- rbind(dV_1,
+            dV_2)
+```
+
+```{r ch11-base-plot-for-comparing-distributions}
+# Create a base plot to compare distributions
+base_plot <- ggplot() +
+  # Plot the thresholds
+  geom_vline(xintercept = mod_community_clm$coefficients[1:4]) +
+  # Label the responses
+  geom_text(aes(label = c("SD", "D", "N", "A", "SA"),
+                x = c(-3, l_j + 0.25)), 
+            y = 0.75) +
+  # Label the ticks in the x axis with the threshold coefficients
+  scale_x_continuous(name = "x",
+                     breaks = l_j, 
+                     labels = expression(lambda[1], 
+                                         lambda[2], 
+                                         lambda[3], 
+                                         lambda[4]))
+```
+
+```{r ch11-plot-distributions-profiles-1-and-2, fig.cap="\\label{fig:plot-distribution-profiles-1-and-2}Comparing the distribution of hypothetical profiles 1 and 2"}
+# Render the plot and annotate the effect of `vehicle`
+base_plot  +
+  # Plot the distributions as ridges
+  geom_ridgeline(data = dV,
+                 aes(x = x, 
+                     y = profile,
+                     fill = profile, 
+                     group = profile,
+                     height = f),
+                 alpha = 0.5) +
+  # Mark the center of the two distributions
+  geom_vline(data = data.frame(profile = c("Profile 1", "Profile 2"),
+                               x = c(V_1, V_2)),
+             aes(xintercept = x,
+                 color = profile,
+                 group = profile),
+             linetype = "dashed") +
+  # Annotate the shift in the location of the distribution due to 
+  # having access to a vehicle
+  annotate("segment", 
+           x = V_1 + 0.3, xend = V_1, 
+           y = 1.75, yend = 1.75,
+           arrow = arrow(), 
+           color = "black") +
+  annotate("segment", 
+           x = V_2 - 0.3, xend = V_2, 
+           y = 1.75, yend = 1.75,
+           arrow = arrow(), 
+           color = "black")+
+  annotate("text", 
+           parse = TRUE, 
+           label = "beta[v]",
+           x = V_1 - 0.15,
+           y = 1.75, 
+           color = "black")
+```
+
+```{r ch11-estimate-probabilities-profiles-1-and-2}
+profiles <- data.frame(profile = c("Profile 1",
+                                   "Profile 2"),
+                       age = 21, 
+                       vehicle = c("No", "Yes"),
+                       Rate_Non_Canadian = 0,
+                       Rate_Public = 0)
+
+profiles <- cbind(profiles,
+                  predict(mod_community_clm, 
+                          newdata = profiles))
+
+profiles %>%
+  select(-c(age, vehicle, Rate_Non_Canadian, Rate_Public))
+```
+
+```{r ch11-bar-chart-probabilities-profiles-1-and-2}
+profiles %>%
+  select(-c(age, vehicle, Rate_Non_Canadian, Rate_Public)) %>%
+  # Pivot longer to gather all probabilities in a sigle column
+  pivot_longer(cols = -profile,
+               names_to = "Response",
+               values_to = "probability") %>%
+  # Code the response in order
+  mutate(Response = factor(Response,
+                           levels = c("fit.STRONGLY DISAGREE",
+                                      "fit.DISAGREE",
+                                      "fit.NEUTRAL",
+                                      "fit.AGREE",
+                                      "fit.STRONGLY AGREE"),
+                           labels = c("SD", "D", "N", "A", "SA"),
+                           ordered = TRUE)) %>%
+  ggplot() +
+  geom_col(aes(x = Response,
+               y = probability,
+               fill = profile),
+           color = "black",
+           position = "dodge") +
+  theme(axis.text.x = element_text(angle = 90))
+```
+
+```{r ch11-profile-3}
+# Define profile 3
+p3 <- c(21, 
+        1,
+        0,
+        median(mc_attitudes$Rate_Public))
+
+# Calculate the utility
+V_3 <- beta_n %*% p3
+
+# Calculate the values of the logistic distribution for profile 2 in the range defined by x
+dV_3 <- data.frame(x = rep(seq(-2.9, 4.4, 0.1)), 
+                   profile = "Profile 3") %>%
+  mutate(f = dlogis(x, 
+                    location = V_3))
+
+# Bind the distributions for the two profiles
+dV <- rbind(dV,
+            dV_3)
+```
+
+```{r ch11-plot-distributions-three-profiles, fig.cap="\\label{fig:plot-distribution-three-profiles}Comparing the distribution of hypothetical profiles 1, 2, and 3"}
+# Render the plot and add the distributions
+base_plot  +
+  # Plot the distributions as ridges
+  geom_ridgeline(data = dV,
+                 aes(x = x, 
+                     y = profile,
+                     fill = profile, 
+                     group = profile,
+                     height = f),
+                 alpha = 0.5) +
+  # Mark the center of the three distributions
+  geom_vline(data = data.frame(profile = c("Profile 1", "Profile 2", "Profile 3"),
+                               x = c(V_1, V_2, V_3)),
+             aes(xintercept = x,
+                 color = profile,
+                 group = profile),
+             linetype = "dashed") 
+```
+
+```{r ch11-model-sense-of-community-effect-of-proportion-transit}
+mod_community_clm$coefficients["Rate_Public"] * median(mc_attitudes$Rate_Public)
+```
+
+```{r ch11-bar-chart-probabilities-three-profiles}
+profiles <- data.frame(profile = c("Profile 1",
+                                   "Profile 2",
+                                   "Profile 3"),
+                       age = 21, 
+                       vehicle = c("No", 
+                                   "Yes", 
+                                   "Yes"),
+                       Rate_Non_Canadian = 0,
+                       Rate_Public = c(0, 
+                                       0,
+                                       median(mc_attitudes$Rate_Public)))
+
+profiles <- cbind(profiles,
+                  predict(mod_community_clm, 
+                          newdata = profiles))
+
+# Prepare data for plotting
+profiles %>%
+  select(-c(age, vehicle, Rate_Non_Canadian, Rate_Public)) %>%
+  # Pivot longer to gather all probabilities in a single column
+  pivot_longer(cols = -profile,
+               names_to = "Response",
+               values_to = "probability") %>%
+  # Code the response in order
+  mutate(Response = factor(Response,
+                           levels = c("fit.STRONGLY DISAGREE",
+                                      "fit.DISAGREE",
+                                      "fit.NEUTRAL",
+                                      "fit.AGREE",
+                                      "fit.STRONGLY AGREE"),
+                           labels = c("SD", "D", "N", "A", "SA"),
+                           ordered = TRUE)) %>%
+  # Plot
+  ggplot() +
+  geom_col(aes(x = Response,
+               y = probability,
+               fill = profile),
+           color = "black",
+           position = "dodge") +
+  theme(axis.text.x = element_text(angle = 90))
+```
+
+```{r ch11-model-sense-of-community-parameterized-thresholds, warning=FALSE}
+mod_community_flex_l <- clm(Community ~ age + vehicle +
+                              Rate_Non_Canadian + Rate_Public,
+                            nominal = ~ gender, 
+                            data = mc_attitudes)
+
+summary(mod_community_flex_l)
+```
+
+```{r ch11-plot-parameterized-thresholds, fig.cap="\\label{fig:plot-parameterized-thresholds}Model with parameterized thresholds for two versions of hypothetical profile 1: woman and man"}
+# Coefficients of the utility function
+beta_n <- mod_community_flex_l$coefficients[9:12]
+
+# Thresholds
+l_j <- mod_community_flex_l$coefficients[1:8]
+
+# Profile 1: Age = 21, No vehicle, other variables at zero
+p1 <- c(21, 0, 0, 0)
+
+# Calculate the utility of these two hypothetical individuals
+V_1 <- beta_n %*% p1
+
+# Calculate the values of the logistic distribution for profile 1 in the range defined by x
+dV_1 <- data.frame(x = rep(seq(-3.2, 4.7, 0.1))) %>%
+  mutate(f = dlogis(x, 
+                    location = V_1))
+
+ggplot() +
+  # Plot the distribution
+  geom_area(data = dV_1,
+            aes(x = x,
+                y = f),
+            color = "black",
+            fill = "orange",
+            alpha = 0.5) +
+  # Plot the thresholds
+  geom_vline(data = data.frame(profile = rep(c("Man", "Woman"), each = 4),
+                               l_j = c(l_j[1:4], l_j[1:4] + l_j[5:8])),
+             aes(xintercept = l_j,
+                 color = profile)) +
+  scale_x_continuous(name = "x",
+                     breaks = c(l_j[1:4], l_j[1:4] + l_j[5:8]), 
+                     labels = expression(lambda[1][m], 
+                                         lambda[2][m], 
+                                         lambda[3][m], 
+                                         lambda[4][m],
+                                         lambda[1][w], 
+                                         lambda[2][w], 
+                                         lambda[3][w], 
+                                         lambda[4][w])) +
+  theme(axis.text.x = element_text(angle = 90))
+```
+
+```{r ch11-model-sense-of-community-non-constant-scale, warning=FALSE}
+mod_community_ncs <- clm(Community ~ age + vehicle +
+                           Rate_Non_Canadian +
+                           Rate_Public,
+                         scale = ~ visa, 
+                         data = mc_attitudes)
+
+summary(mod_community_ncs)
+```
+
+```{r}
+exp(mod_community_ncs$coefficients[9])
+```
+
+```{r ch11-plot-parameterized-scale, fig.cap="\\label{fig:plot-parameterized-scale}Model with parameterized scale for two versions of hypothetical profile 4: domestic and international student"}
+# Coefficients of the utility function
+beta_n <- mod_community_ncs$coefficients[5:8]
+
+# Thresholds
+l_j <- mod_community_ncs$coefficients[1:4]
+
+# Scale
+s_I <- exp(mod_community_ncs$coefficients[9])
+
+# Profile 4: Age = 21, No vehicle, other variables at zero
+# proportion of non-Canadian residents is the in-sample median
+p1 <- c(21, 0, median(mc_attitudes$Rate_Non_Canadian), 0)
+
+# Calculate the utility of these two hypothetical individuals
+V_1 <- beta_n %*% p1
+
+# Calculate the values of the logistic distribution for profile 1
+# when student is Domestic
+dV_D <- data.frame(x = rep(seq(-3.2, 4.7, 0.1)),
+                   profile = "Domestic") %>%
+  mutate(f = dlogis(x, 
+                    location = V_1))
+
+# Calculate the values of the logistic distribution for profile 1 
+# when student is International
+dV_I <- data.frame(x = rep(seq(-3.2, 4.7, 0.1)),
+                   profile = "International") %>%
+  mutate(f = dlogis(x, 
+                    location = V_1,
+                    scale = s_I))
+
+# Bind the distributions for the two profiles
+dV <- rbind(dV_D,
+            dV_I)
+
+# Render the plot and add the distributions
+ggplot() +
+  # Plot the distributions as ridges
+  geom_ridgeline(data = dV,
+                 aes(x = x, 
+                     y = profile,
+                     fill = profile, 
+                     group = profile,
+                     height = f),
+                 alpha = 0.5) +
+  # Plot the thresholds
+  geom_vline(xintercept = mod_community_ncs$coefficients[1:4]) +
+  # Label the responses
+  geom_text(aes(label = c("SD", "D", "N", "A", "SA"),
+                x = c(-3, l_j + 0.25)), 
+            y = 0.75) +
+  # Label the ticks in the x axis with the threshold coefficients
+  scale_x_continuous(name = "x",
+                     breaks = l_j, 
+                     labels = expression(lambda[1], 
+                                         lambda[2], 
+                                         lambda[3], 
+                                         lambda[4]))
+```
+
+```{r}
+mod_bivariate <- mvord(formula = MMO2(Community, Neighbors) ~ 0 + age + vehicle +
+                         Rate_Non_Canadian +
+                         Rate_Public, 
+                       link = mvlogit(df = 8L),
+                       # {mvord} does not like tbl or tbl_df objects:
+                       # convert to plain data.frame
+                       data = data.frame(mc_attitudes))
+summary(mod_bivariate)
+```
+
+```{r ch11-in-sample-individual}
+# Select an individual in the sample to fit the probabilities
+n_ind <- 1
+
+# Create a grid of values for chosen individual
+fit_grid_ind <- expand.grid(Community = c("STRONGLY DISAGREE", 
+                                          "DISAGREE", 
+                                          "NEUTRAL", 
+                                          "AGREE", 
+                                          "STRONGLY AGREE"),
+                            Neighbors = c("STRONGLY DISAGREE", 
+                                          "DISAGREE", 
+                                          "NEUTRAL", 
+                                          "AGREE", 
+                                          "STRONGLY AGREE"),
+                            # Retrieve the attributes of the n_ind record
+                            # in the table
+                            age = mc_attitudes$age[n_ind],
+                            vehicle = mc_attitudes$vehicle[n_ind],
+                            Rate_Non_Canadian = mc_attitudes$Rate_Non_Canadian[n_ind],
+                            Rate_Public = mc_attitudes$Rate_Public[n_ind])
+```
+
+```{r ch11-fitted-joint-probability-for-in-sample-individual}
+# Join the prediction grid to the predicted probabilities
+joint.probs <- data.frame(fit_grid_ind %>%
+                            select(Community, Neighbors),
+                          # Use `predict()` and the prediction grid
+                          # to predict joint probabilities
+                          joint.prob = predict(mod_bivariate, 
+                                               type = "prob", 
+                                               newdata = fit_grid_ind)) %>%
+  # Revalue the ordinal responses for ease of presentation
+  mutate(Community = revalue(Community,
+                             c("STRONGLY DISAGREE" = "Community_SD",
+                               "DISAGREE" = "Community_D",
+                               "NEUTRAL" = "Community_N",
+                               "AGREE" = "Community_A",
+                               "STRONGLY AGREE" = "Community_SA")),
+         Neighbors = revalue(Neighbors,
+                             c("STRONGLY DISAGREE" = "Neighbors_SD",
+                               "DISAGREE" = "Neighbors_D",
+                               "NEUTRAL" = "Neighbors_N",
+                               "AGREE" = "Neighbors_A",
+                               "STRONGLY AGREE" = "Neighbors_SA"))) %>%
+  pivot_wider(names_from = Neighbors, values_from = joint.prob)
+
+joint.probs %>%
+  kable("latex",
+        digits = 5,
+        caption = "\\label{tab:joint-probs-in-sample-individuals}
+        Fitted joint probabilities for in-sample individual")
+```
+
+```{r ch11-verify-sum-joint-probabilities-for-in-sample-individual}
+joint.probs %>% 
+  select(-Community) %>% 
+  sum()
+```
+
+```{r ch11-predicetion-grid-bivariate-model-example}
+pred_grid <- expand.grid(Community = c("STRONGLY DISAGREE", 
+                                       "DISAGREE", 
+                                       "NEUTRAL", 
+                                       "AGREE", 
+                                       "STRONGLY AGREE"),
+                         Neighbors = c("STRONGLY DISAGREE", 
+                                       "DISAGREE", 
+                                       "NEUTRAL", 
+                                       "AGREE", 
+                                       "STRONGLY AGREE"),
+                         # Age = 20 is the value for the first quartile in the sample
+                         # and age = 23 is the value for the third quartile
+                         age = c(20, 23), 
+                         vehicle = levels(mc_attitudes$vehicle),
+                         Rate_Non_Canadian = median(mc_attitudes$Rate_Non_Canadian),
+                         Rate_Public = median(mc_attitudes$Rate_Public))
+```
+
+```{r ch11-predicted-joint-probabilities-bivariate-model}
+# Create a data frame with the prediction grid and 
+# the predicted joint probabilities
+pred_grid <- data.frame(pred_grid, 
+                        joint.prob = predict(mod_bivariate, 
+                                             type = "prob", 
+                                             newdata = pred_grid)) %>%
+  # Convert to factors and revalue for presentation
+  mutate(age = factor(age,
+                      levels = c(20, 23),
+                      labels = c("Age = 20",
+                                 "Age = 23")),
+         vehicle = revalue(vehicle,
+                           c("Yes" = "Vehicle", 
+                             "No" = "No Vehicle")),
+         Community = revalue(Community,
+                             c("STRONGLY DISAGREE" = "SD", 
+                               "DISAGREE" = "D", 
+                               "NEUTRAL" = "N", 
+                               "AGREE" = "A", 
+                               "STRONGLY AGREE" = "SA")),
+         Neighbors = revalue(Neighbors,
+                             c("STRONGLY DISAGREE" = "SD", 
+                               "DISAGREE" = "D", 
+                               "NEUTRAL" = "N", 
+                               "AGREE" = "A", 
+                               "STRONGLY AGREE" = "SA")))
+
+```
+
+```{r ch11-verify-sum-joint-probabilities-bivariate-example}
+pred_grid %>%
+  group_by(age, vehicle) %>%
+  summarize(prob = sum(joint.prob),
+            .groups = "drop")
+```
+
+```{r ch11-plot-joint-probabilities-bivariate-example}
+pred_grid %>%  
+  ggplot(aes(x = Community, y = Neighbors)) + 
+  geom_tile(aes(fill = joint.prob)) +
+  scale_fill_gradient(name = "joint probability",
+                      low="white", 
+                      high="black") +
+  coord_equal() + 
+  theme(legend.position = "bottom") +
+  facet_grid(vehicle ~ age)
+```
+
+```{r ch11-odds-ratios-by-vehicle-status-bivariate-example, fig.cap="\\label{fig:odds-ratios-by-vehicle-status}Plot of odds ratios by age for No Vehicle/Vehicle status"}
+pred_grid %>% 
+  # Pivot the table to create columns of joint probabilities
+  # for `No Vehicle` and `Vehicle`
+  pivot_wider(names_from = vehicle, 
+              values_from = joint.prob) %>%
+  # Calculate the ratio of the joint probability for the two
+  # profiles
+  mutate(or = `No Vehicle`/Vehicle) %>%
+  # Plot as tiles
+  ggplot(aes(x = Community, 
+             y = Neighbors)) +
+  geom_tile(aes(fill = or)) +
+  # Use a divergent fill scale with midpoint 1
+  scale_fill_gradient2(name = "odds ratio (No Vehicle/Vehicle)",
+                       midpoint = 1) +
+  coord_equal() + 
+  theme(legend.position = "bottom",
+        legend.text = element_text(angle = 90)) +
+  # Facet by age
+  facet_grid(~ age)
+```
+
+```{r ch11-odds-ratios-by-age-bivariate-example, fig.cap="\\label{fig:odds-ratios-by-age}Plot of odds ratios by age for Age 23/Age 20"}
+pred_grid %>% 
+  pivot_wider(names_from = age, values_from = joint.prob) %>%
+  mutate(or = `Age = 23`/`Age = 20`) %>%
+  ggplot(aes(x = Community, y = Neighbors)) + 
+  geom_tile(aes(fill = or)) +
+  scale_fill_gradient2(name = "odds ratio (Age 23/Age 20)",
+                       midpoint = 1) +
+  coord_equal() + 
+  theme(legend.position = "bottom",
+        legend.text = element_text(angle = 90)) +
+  facet_grid(~ vehicle)
+```
+
+```{r}
+data("mc_modality",
+      package = "discrtr")
+```
+

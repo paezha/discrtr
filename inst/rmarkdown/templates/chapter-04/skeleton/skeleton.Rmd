@@ -1,0 +1,203 @@
+---
+title: "Code in Chapter 04: Logit"
+author: "Antonio Paez and Genevieve Boisjoly"
+output:
+  rmdformats::robobook:
+    highlight: kate
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r ch04-hello-world}
+print("Hello, Prof. Train")
+```
+
+```{r ch04-load-packages, message=FALSE, cache=FALSE}
+library(dplyr) # A Grammar of Data Manipulation
+library(evd) # Functions for Extreme Value Distributions 
+library(ggplot2) # Create Elegant Data Visualisations Using the Grammar of Graphics
+```
+
+```{r ch04-fig-evi-distribution, fig.cap= "\\label{fig:fig-evi-distribution}Extreme Value Type I distribution"}
+# Define parameters for the distribution
+# Location
+mu <- 0
+# Scale
+sigma <- 1
+
+# Create a data frame for plotting; 
+df <- data.frame(x =seq(from = -5, 
+                        to = 5, 
+                        by = 0.01)) %>% 
+  # The function `dgumbel()` is the EV Type I distribution
+  mutate(f = dgumbel(x, 
+                     # Location parameter
+                     loc = mu, 
+                     # Scale parameter
+                     scale = sigma))
+
+# Plot
+ggplot(data = df, 
+       aes(x = x,
+           y = f)) +
+  geom_area(fill = "orange", 
+            alpha = 0.5) +
+  geom_hline(yintercept = 0) + 
+  geom_vline(xintercept = 0) + 
+  ylab("f(x)") 
+```
+
+```{r ch04-fig-logistic-normal-distribution, fig.cap= "\\label{fig:fig-logistic-normal-distribution}Comparison of the logistic (blue) and normal (grey) distributions"}
+# Define parameters for the distribution
+# Location
+mu <- 0
+# Scale
+sigma <- 1
+
+# Create a data frame for plotting
+df <- data.frame(x =seq(from = -5, 
+                        to = 5, 
+                        by = 0.01)) %>% 
+  # Add columns with the values of the 
+  # `dlogis()` and `dnorm()` distributions
+  mutate(logistic = dlogis(x, 
+                           # Location parameter
+                           location = mu, 
+                           # Scale parameter
+                           scale = sigma), 
+         normal = dnorm(x, 
+                        # The location parameter of the normal
+                        # distribution is the mean
+                        mean = mu, 
+                        # The scale parameter of the normal 
+                        # distribution is the standard deviation
+                        sd = sigma))
+
+# Plot
+ggplot() +
+  # Add geometric object of type area to plot the 
+  # logistic distribution
+  geom_area(data = df, 
+            aes(x = x, 
+                y = logistic), 
+            # The fill color of the logistic distribution
+            fill = "blue", 
+            alpha = 0.5) +
+  # Add geometric object of type area to plot the 
+  # normal distribution
+  geom_area(data = df, 
+            aes(x = x, 
+                y = normal), 
+            # The fill color of the normal distribution
+            fill = "black", 
+            alpha = 0.5) +
+  geom_hline(yintercept = 0) + 
+  geom_vline(xintercept = 0) + 
+  ylab("f(x)") # Label the y axis
+```
+
+```{r ch04-fig-logistic-distribution, fig.cap= "\\label{fig:fig-logistic-distribution}Logit probability"}
+# Define parameters for the distribution
+# Location
+mu <- 0
+# Scale
+sigma <- 1
+
+# Define an upper limit for calculating the probability; 
+# This equivalent to V_i - V_j. 
+# Negative values represent V_i < V_j, and positive values are V_j > V_i; 
+# when V_j = V_k, then X = 0:
+x <- -2
+
+# Create data frames for plotting
+df <- data.frame(x =seq(from = -6 + mu, 
+                        to = 6 + mu, 
+                        by = 0.01)) %>% 
+  mutate(y = dlogis(x, 
+                    location = mu, 
+                    scale = sigma))
+df_p <- data.frame(x =seq(from = -6, 
+                          to = x, 
+                          by = 0.01)) %>% 
+  mutate(y = dlogis(x, 
+                    location = mu, 
+                    scale = sigma))
+
+# Plot distribution function and the area under the curve
+ggplot(data = df, 
+       aes(x, y)) +
+  geom_area(fill = "orange", 
+            alpha = 0.5) + 
+  geom_area(data = df_p, 
+            fill = "orange", 
+            alpha = 1) + 
+  geom_hline(yintercept = 0) + 
+  geom_vline(xintercept = 0) + 
+  xlab(expression(paste(V[i] - V[j] - mu))) + 
+  ylab("f(x)") 
+```
+
+```{r sh04-sigmoid, fig-logistic-cumulative-distribution, fig.cap= "\\label{fig:fig-logistic-cumulative-distribution}Linear cumulative distribution function"}
+# Define parameters for the distribution
+# Location
+mu <- 0
+# Scale
+sigma <- 1
+
+# Create a data frame for plotting
+df <- data.frame(x =seq(from = -5 + mu, 
+                        to = 5 + mu,
+                        by = 0.01)) %>%
+  mutate(f = plogis(x,
+                    location = mu,
+                    scale = 1))
+
+# Plot the cumulative distribution function
+logit_plot <- ggplot(data = df, 
+                     aes(x = x,
+                         y = f)) +
+  geom_line(color = "orange") +  
+  ylim(c(0, 1)) + 
+  geom_hline(yintercept = 0) +
+  geom_vline(xintercept = 0) 
+
+logit_plot +
+  xlab(expression(paste(V[i] - V[j] - mu))) + 
+  ylab(expression(paste(P[i]))) 
+```
+
+```{r ch04-sigmoid-implications, fig-logistic-shape-implication, fig.cap= "\\label{fig:fig-logistic-shape-implication}Implication of the sigmoid shape"}
+logit_plot +
+  xlab(expression(paste(V[transit] - V[car] - mu))) + 
+  ylab(expression(paste(P[transit]))) + 
+  annotate("segment", 
+           x = -3.75, xend = -2.5, 
+           y = 0.024, yend = 0.024, 
+           colour = "blue", 
+           linetype = "solid") +
+  annotate("segment", 
+           x = -2.5, xend = -2.5, 
+           y = 0.024, yend = 0.075, 
+           colour = "blue", 
+           linetype = "solid") +
+  annotate("segment", 
+           x = 0, xend = 1.25, 
+           y = 0.5, yend = 0.5, 
+           colour = "red", 
+           linetype = "dashed") +
+  annotate("segment", 
+           x = 1.25, xend = 1.25, 
+           y = 0.5, yend = 0.77, 
+           colour = "red", 
+           linetype = "dashed")
+```
+
+```{r ch04-differences-in-utility}
+V_j <- -4
+V_k <- 8
+theta <- 0.8
+
+theta * V_j - theta * V_k 
+```

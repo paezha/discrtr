@@ -1,0 +1,680 @@
+---
+title: "Code in Chapter 10: Dealing with Heterogeneity II: The Mixed Logit Model"
+author: "Antonio Paez and Genevieve Boisjoly"
+output:
+  rmdformats::robobook:
+    highlight: kate
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r ch10-load-packages, message=FALSE, cache=FALSE}
+library(AER) # Applied Econometrics with R 
+library(dplyr) # A Grammar of Data Manipulation
+library(ggplot2) # Create Elegant Data Visualisations Using the Grammar of Graphics
+library(gmnl) # Multinomial Logit Models with Random Parameters
+library(gridExtra) # Miscellaneous Functions for "Grid" Graphics
+library(kableExtra) # Construct Complex Table with 'kable' and Pipe Syntax
+library(mlogit) # Multinomial Logit Models
+library(stargazer) # Well-Formatted Regression and Summary Statistics Tables
+library(tibble) # Simple Data Frames
+library(tidyr) # Tidy Messy Data
+```
+
+```{r ch10-load-data} 
+data("TravelMode", 
+     package = "AER")
+```
+
+```{r ch10-descriptive-statistics}
+Proportion <- TravelMode %>% 
+  filter(choice == "yes") %>%
+  select(mode) %>%
+  group_by(mode) %>%
+  summarise(no_rows = length(mode))
+
+# Calculate the median of the variables
+df <- TravelMode %>% 
+  group_by(mode) %>% 
+  summarize(vcost = median(vcost), 
+            wait = median(wait), 
+            travel = median(travel))
+
+# Calculate proportions
+df$Proportion <- Proportion$no_rows/(nrow(TravelMode)/4)
+
+df %>%
+  kable(digits = 3) %>%
+  kable_styling()
+```
+
+```{r ch10-format-data}
+TM <- mlogit.data(TravelMode, 
+                  choice = "choice", 
+                  shape = "long",
+                  alt.levels = c("air", 
+                                 "train", 
+                                 "bus", 
+                                 "car"))
+```
+
+```{r ch10-estimate-base-models}
+#Multinomial logit
+mnl0 <- mlogit(choice ~ vcost + travel + wait | 1,
+             data = TM)
+
+#Nested logit:
+nl <- mlogit(choice ~ vcost + travel + wait | 1,
+             data = TM,
+             nests = list(land = c( "car",
+                                    "bus",
+                                    "train"), 
+                          air = c("air")),
+             un.nest.el = TRUE)
+
+#Multinomial probit:
+prbt <- mlogit(choice ~ vcost + travel + wait | 1,
+             data = TM,
+             probit = TRUE)
+```
+
+```{r ch10-fig-nesting-structure, fig.cap= "\\label{fig:fig-nesting-structure}Nests in the nested logit model", echo=FALSE}
+knitr::include_graphics("figures/10-Figure-1.png")
+```
+
+```{r ch10-table-base-models}
+# Estimate a constants only model to calculate McFadden's _adjusted_ rho2
+mnl_null_lo = -283.83
+
+mnl0.summary <- rownames_to_column(data.frame(summary(mnl0)$CoefTable), 
+                                   "Variable") %>%
+  transmute(Variable, 
+            Estimate, 
+            pval = `Pr...z..`)
+
+nl.summary <- rownames_to_column(data.frame(summary(nl)$CoefTable), 
+                                 "Variable") %>%
+  transmute(Variable, 
+            Estimate, 
+            pval = `Pr...z..`)
+
+prbt.summary <- rownames_to_column(data.frame(summary(prbt)$CoefTable), 
+                                   "Variable") %>% 
+  transmute(Variable, 
+            Estimate, 
+            pval = `Pr...z..`)
+
+# Join summary tables
+df_logit <- mnl0.summary %>%
+  full_join(nl.summary, 
+            by = "Variable") %>% 
+  full_join(prbt.summary, 
+            by = "Variable")
+
+kable(df_logit, 
+      "latex",
+      digits = 4,
+      col.names = c("Variable",
+                    "Estimate",
+                    "p-value",
+                    "Estimate",
+                    "p-value",
+                    "Estimate",
+                    "p-value"),
+      caption = "\\label{tab:base-models}Base models: 
+      multinomial logit (MNL), nested logit (NL), multinomial probit (MNP)") %>%
+  kable_styling() %>%
+  add_header_above(c(" " = 1, "MNL" = 2, "NL" = 2, "MNP" = 2)) %>%
+  footnote(general = c(paste0("Log-Likelihood: MNL = ", 
+                              round(mnl0$logLik[1], digits = 3),
+                              "; NL = ", 
+                              round(nl$logLik[1], digits = 3),
+                              "; MNP = ", 
+                              round(prbt$logLik[1], digits = 3)),
+                       paste0("McFadden Adjusted R^2: MNL = ", 
+                              round(1 - (mnl0$logLik[1] - nrow(mnl0.summary)) / 
+                                      mnl_null_lo, 
+                                    digits = 3),
+                              "; NL = ", 
+                              round(1 - (nl$logLik[1] - nrow(nl.summary)) / 
+                                      mnl_null_lo, 
+                                    digits = 3),
+                              "; MNP = ", 
+                              round(1 - (prbt$logLik[1] - nrow(prbt.summary)) / 
+                                      mnl_null_lo, 
+                                    digits = 3))))
+```
+
+```{r ch10-inclusive-parameter-base-nested-logit-model}
+(nl$coefficients["iv"] - 1) / sqrt(vcov(nl)["iv","iv"])
+```
+
+```{r ch10-hello-world}
+print("A piece of advice: never punch a shark in the mouth")
+```
+
+```{r ch10-mixed-logit-models-no-decision-maker-attributes, message=FALSE}
+# MIXL T
+mixl_t <- gmnl(choice ~ vcost + travel + wait | 1,
+             data = TM,
+             model = "mixl", 
+             ranp = c(travel = "n"),
+             R = 50)
+mixl_t$logLik$message
+
+# MIXL W
+mixl_w <- gmnl(choice ~ vcost + travel + wait | 1,
+             data = TM, 
+             model = "mixl", 
+             ranp = c(wait = "n"), 
+             R = 50)
+mixl_w$logLik$message
+
+
+# MIXL T&W
+mixl <- gmnl(choice ~ vcost + travel + wait | 1,
+             data = TM, 
+             model = "mixl", 
+             ranp = c(travel = "n", wait = "n"), 
+             R = 60)
+mixl$logLik$message
+```
+
+```{r ch10-table-mixed-logit-models-no-decision-maker-attributes, message=FALSE}
+# Estimate a constants only model to calculate McFadden's _adjusted_ rho2
+mixl0 <- gmnl(choice ~ 1,
+             data = TM, 
+             model = "mnl")
+
+mixl_t.summary <- rownames_to_column(data.frame(summary(mixl_t)$CoefTable),
+                                     "Variable") %>%
+  transmute(Variable,
+            Estimate, 
+            pval = `Pr...z..`)
+
+mixl_w.summary <- rownames_to_column(data.frame(summary(mixl_w)$CoefTable), 
+                                     "Variable") %>%
+  transmute(Variable,
+            Estimate,
+            pval = `Pr...z..`)
+
+mixl.summary <- rownames_to_column(data.frame(summary(mixl)$CoefTable),
+                                   "Variable") %>% 
+  transmute(Variable, 
+            Estimate, 
+            pval = `Pr...z..`)
+
+mixl_table_1 <- full_join(mixl_t.summary, 
+                          mixl_w.summary, 
+                          by = "Variable") %>% 
+  full_join(mixl.summary,
+            by = "Variable")
+
+kable(mixl_table_1, 
+      "latex",
+      digits = 4,
+      col.names = c("Variable",
+                    "Estimate",
+                    "p-value",
+                    "Estimate",
+                    "p-value",
+                    "Estimate",
+                    "p-value"),
+      caption = "\\label{tab:table-mixed-logit-models}Mixed logit models",
+      ) %>%
+  kable_styling() %>%
+  add_header_above(c(" " = 1, "MIXL T" = 2, "MIXL W" = 2, "MIXL T&W" = 2)) %>%
+  footnote(general = c(paste0("Log-Likelihood: MIXL T = ",
+                              round(mixl_t$logLik$maximum, 
+                                    digits = 3),
+                            "; MIXL W = ", 
+                            round(mixl_w$logLik$maximum, 
+                                  digits = 3),
+                            "; MIXL T&W = ", 
+                            round(mixl$logLik$maximum, 
+                                  digits = 3)),
+                       # Calculate McFadden's  rho-2
+                       paste0("McFadden Adjusted R^2: MIXL T = ",
+                              round(1 - (mixl_t$logLik$maximum - nrow(mixl_t.summary)) / 
+                                      mixl0$logLik$maximum, 
+                                    digits = 3),
+                              "; MIXL W = ", 
+                              round(1 - (mixl_w$logLik$maximum - nrow(mixl_w.summary)) / 
+                                      mixl0$logLik$maximum, 
+                                    digits = 3),
+                              "; MIXL T&W = ", 
+                              round(1 - (mixl$logLik$maximum - nrow(mixl.summary)) / 
+                                      mixl0$logLik$maximum, 
+                                    digits = 3))))
+```
+
+```{r ch10-mixed-logit-models-no-decision-maker-attributes-distributions}
+# Retrieve the estimated parameters
+mu <- coef(mixl_w)['wait']
+sigma <- coef(mixl_w)['sd.wait']
+
+# Create a data frame for plotting
+df <- data.frame(x =seq(from = -0.6, 
+                        to = 0.2, 
+                        by = 0.005)) %>%
+  # Draw from the normal distribution for x given the mean and sd
+  mutate(normal = dnorm(x,
+                        mean = mu, 
+                        sd = sigma))
+
+# Same, but only positive values of x
+df_p <- data.frame(x = seq(from = 0, 
+                           to = 0.2, 
+                           by = 0.005)) %>% 
+  mutate(normal = dnorm(x, 
+                        mean = mu, 
+                        sd = sigma))
+```
+
+```{r ch10-mixed-logit-models-no-decision-maker-attributes-distributions-plot}
+# Plot
+ggplot() +
+  # Plot the distribution
+  geom_area(data = df, 
+            aes(x = x, 
+                y = normal), 
+            fill = "orange", 
+            alpha = 0.5) +
+  # Plot the distribution for positive values of x only
+  geom_area(data = df_p, 
+            aes(x = x,
+                y = normal), 
+            fill = "orange", 
+            alpha = 0.5) +
+  geom_hline(yintercept = 0) + # Add y axis
+  geom_vline(xintercept = 0) + # Add x axis
+  ylab("f(x)") + # Label the y axis
+  xlab(expression(beta[n][wait])) + # Label the x axis
+  ggtitle("Unconditional distribution for wait parameter")
+```
+
+```{r ch10-mixed-logit-models-no-decision-maker-attributes-proportion}
+1 - pnorm(0,
+          mean = coef(mixl_w)['wait'],
+          sd = coef(mixl_w)['sd.wait'])
+```
+
+```{r ch10-mixed-logit-models-no-decision-maker-attributes-proportion-2}
+1 - pnorm(-coef(mixl_w)['wait'] / coef(mixl_w)['sd.wait'])
+```
+
+```{r ch10-mixed-logit-models-no-decision-maker-attributes-willingness-to-pay}
+# Define parameters for the distribution of willingness to pay
+mu <- coef(mixl_w)['wait'] / coef(mixl_w)['vcost']
+sigma <- sqrt(coef(mixl_w)['sd.wait']^2/ coef(mixl_w)['vcost']^2)
+
+# Create a data frame for plotting
+df <- data.frame(x =seq(from = -10, to = 30, by = 0.1)) %>% 
+  mutate(normal = dnorm(x, mean = mu, sd = sigma))
+```
+
+```{r ch10-mixed-logit-models-no-decision-maker-attributes-willingness-to-pay-plot}
+# Plot
+ggplot() +
+  geom_area(data = df, aes(x, normal), fill = "orange", alpha = 0.5) +
+#  geom_area(data = df_p, aes(x, normal), fill = "orange", alpha = 0.5) +
+  #ylim(c(0, 1/(2 * L) + 0.2 * 1/(2 * L))) + # Set the limits of the y axis
+  geom_hline(yintercept = 0) + # Add y axis
+  geom_vline(xintercept = 0) + # Add x axis
+  ylab("f(x)") + # Label the y axis
+  xlab(expression(WTP[n][wait])) + # Label the x axis
+  ggtitle("Unconditional distribution for willingness to pay for wait")
+```
+
+```{r ch10-mixed-logit-models-no-decision-maker-attributes-conditional-distributions}
+# Define parameters for the distribution
+bn_wait <- effect.gmnl(mixl_w, 
+                       par = "wait", 
+                       # Choose conditional effect
+                       effect = "ce")
+
+# Create a data frame for plotting
+df <- data.frame(bn_wait = bn_wait$mean)
+
+# Plot
+ggplot() +
+  geom_density(data = df, 
+            aes(x = bn_wait), 
+            fill = "orange", 
+            alpha = 0.5) +
+  geom_hline(yintercept = 0) + # Add y axis
+  geom_vline(xintercept = 0) + # Add x axis
+  ylab("f(x)") + # Label the y axis
+  xlab(expression(beta[n][wait])) + # Label the x axis
+  ggtitle("Conditional distribution for wait parameter")
+```
+
+```{r ch10-mixed-logit-models-no-decision-maker-attributes-conditional-wtp}
+# Define parameters for the distribution
+wtp_wait <- effect.gmnl(mixl_w, 
+                       par = "wait", 
+                       # Effects is willingness to pay
+                       effect = "wtp", 
+                       # With respect to vcost
+                       wrt = "vcost")
+
+# Create a data frame for plotting
+df <- data.frame(wtp_wait = wtp_wait$mean)
+
+# Plot
+ggplot() +
+  geom_density(data = df, 
+            aes(x = wtp_wait), 
+            fill = "orange", 
+            alpha = 0.5) +
+  geom_hline(yintercept = 0) + # Add y axis
+  geom_vline(xintercept = 0) + # Add x axis
+  ylab("f(x)") + # Label the y axis
+  xlab(expression(WTP[n][wait])) + # Label the x axis
+  ggtitle("Conditional willingness to pay for wait parameter wrt to vcost")
+```
+
+```{r ch10-variable-interactions}
+TM <- mutate(TravelMode, 
+             `wait:income` = wait * income,  
+             `travel:income` = travel * income,
+             `wait:size` = wait * size,  
+             `travel:size` = travel * size)
+
+TM <- mlogit.data(TM, 
+                  choice = "choice", 
+                  shape = "long",
+                  alt.levels = c("air", 
+                                 "train",
+                                 "bus", 
+                                 "car"))
+```
+
+```{r ch10-multinomia-logit-models-with-decision-maker-attributes}
+mnl_cov <- mlogit(choice ~ vcost + travel + wait | income + size,
+             data = TM)
+
+mnl_exp <- mlogit(choice ~ vcost + travel + travel:income + travel:size + wait + wait:income | 1,
+             data = TM)
+```
+
+```{r ch10-table-multinomial-logit-models-with-decision-maker-attributes}
+mnl_null_lo = -283.83
+
+mnl1.summary <- rownames_to_column(data.frame(summary(mnl_cov)$CoefTable), 
+                                   "Variable") %>%
+  transmute(Variable, 
+            Estimate, 
+            pval = `Pr...z..`)
+
+mnl2.summary <- rownames_to_column(data.frame(summary(mnl_exp)$CoefTable),
+                                   "Variable") %>%
+  transmute(Variable, 
+            Estimate, 
+            pval = `Pr...z..`)
+
+df_logit_2 <- mnl1.summary %>% 
+  full_join(mnl2.summary,
+            by = "Variable")
+
+kable(df_logit_2, 
+      "latex",
+      digits = 4,
+      col.names = c("Variable",
+                    "Estimate",
+                    "p-value",
+                    "Estimate",
+                    "p-value")) %>%
+  kable_styling() %>%
+  add_header_above(c(" " = 1, "MNL - Covariates" = 2, "MNL - Expansion" = 2)) %>%
+  footnote(general = c(paste0("Log-Likelihood: MNL - Covariates = ", 
+                              round(mnl_cov$logLik[1], 
+                                    digits = 3),
+                            "; MNL - Expansion = ", 
+                            round(mnl_exp$logLik[1], 
+                                  digits = 3)),
+                       # Calculate McFadden's  rho-2
+                       paste0("McFadden Adjusted R^2: MNL - Covariates = ",
+                              round(1 - (mnl_cov$logLik[1] - nrow(mnl1.summary)) / 
+                                      mnl_null_lo, 
+                                    digits = 3),
+                              "; NL = ", 
+                              round(1 - (mnl_exp$logLik[1] - nrow(mnl2.summary)) /
+                                      mnl_null_lo, 
+                                    digits = 3))))
+```
+
+```{r ch10-multinomial-logit-models-distribution-with-decision-maker-attributes}
+# Create a data frame for plotting
+df <- data.frame(income = seq(from = min(TM$income),
+                              to = max(TM$income), 
+                              by = 1)) %>%
+  mutate(time = coef(mnl_exp)['travel'] + coef(mnl_exp)['travel:income'] * income,
+         wait = coef(mnl_exp)['wait'] + coef(mnl_exp)['wait:income'] * income) %>%
+  pivot_longer(cols = -income,
+               names_to = "variable",
+               values_to = "coefficient")
+
+# Plot
+ggplot(df) +
+  geom_line(aes(x = income, 
+                y = coefficient, 
+                color = variable))
+```
+
+```{r ch10-mixed-logit-models-with-decision-maker-attributes, message=FALSE}
+mixl_w1 <- gmnl(choice ~ vcost + travel + wait | income + size,
+             data = TM,
+             model = "mixl", 
+             ranp = c(wait = "n"), 
+             R = 50)
+
+
+mixl_w2 <- gmnl(choice ~ vcost + travel + travel:income + travel:size + 
+                  wait + wait:income | 1,
+             data = TM, 
+             model = "mixl",
+             ranp = c(wait = "n"), 
+             R = 50)
+
+```
+
+```{r ch10-table-mixed-logit-models-with-decision-maker-attributes}
+mixl_w1.summary <- rownames_to_column(data.frame(summary(mixl_w1)$CoefTable),
+                                      "Variable") %>%
+  transmute(Variable, 
+            Estimate, 
+            pval = `Pr...z..`)
+
+mixl_w2.summary <- rownames_to_column(data.frame(summary(mixl_w2)$CoefTable), 
+                                      "Variable") %>%
+  transmute(Variable, 
+            Estimate, 
+            pval = `Pr...z..`)
+
+mixl_table_2 <- mixl_w1.summary %>%
+  full_join(mixl_w2.summary, 
+            by = "Variable")
+
+kable(mixl_table_2, 
+      "latex",
+      digits = 4,
+      col.names = c("Variable",
+                    "Estimate",
+                    "p-value",
+                    "Estimate",
+                    "p-value")) %>%
+  kable_styling() %>%
+  add_header_above(c(" " = 1, "MIXL W-1" = 2, "MIXL W-2" = 2)) %>%
+  footnote(general = c(paste0("Log-Likelihood: MIXL W-1 = ", 
+                              round(mixl_w1$logLik$maximum, 
+                                    digits = 3),
+                            "; MIXL W-2 = ", 
+                            round(mixl_w2$logLik$maximum, 
+                                  digits = 3)),
+                       # Calculate McFadden's  rho-2
+                       paste0("McFadden Adjusted R^2: MIXL W-1 = ", 
+                              round(1 - (mixl_w1$logLik$maximum - nrow(mixl_w1.summary)) /
+                                      mixl0$logLik$maximum, 
+                                    digits = 3),
+                              "; MIXL W-2 = ", 
+                              round(1 - (mixl_w2$logLik$maximum - nrow(mixl_w2.summary)) /
+                                      mixl0$logLik$maximum, 
+                                    digits = 3))))
+```
+
+```{r ch10-mixed-logit-models-with-decision-maker-attributes-distributions}
+# Define parameters for the distribution of willingness to pay
+# Obtain quartiles
+q <- quantile(TM$income, c(0, 0.25, 0.5, 0.75, 1))
+
+# Define parameters for the distribution
+mu_w <- coef(mixl_w)['wait']
+sigma_w <- coef(mixl_w)['sd.wait']
+
+# First quartile
+mu_w2.1 <- coef(mixl_w2)['wait'] + coef(mixl_w2)["wait:income"] * q[2]
+sigma_w2.1 <- coef(mixl_w2)['sd.wait']
+
+# Third quartile
+mu_w2.3 <- coef(mixl_w2)['wait'] + coef(mixl_w2)["wait:income"] * q[4]
+sigma_w2.3 <- coef(mixl_w2)['sd.wait']
+
+# Create a data frame for plotting
+df_w <- data.frame(x =seq(from = -0.6,
+                          to = 0.2, 
+                          by = 0.005)) %>% 
+  mutate(normal = dnorm(x, 
+                        mean = mu_w, 
+                        sd = sigma_w))
+
+df_w2.1 <- data.frame(x =seq(from = -0.6, 
+                             to = 0.2, 
+                             by = 0.005)) %>% 
+  mutate(normal = dnorm(x, 
+                        mean = mu_w2.1, 
+                        sd = sigma_w2.1))
+df_w2.3 <- data.frame(x =seq(from = -0.6, 
+                             to = 0.2, 
+                             by = 0.005)) %>% 
+  mutate(normal = dnorm(x, 
+                        mean = mu_w2.3, 
+                        sd = sigma_w2.3))
+
+# Plot
+ggplot() +
+  geom_area(data = df_w2.1, 
+            aes(x = x, 
+                y = normal), 
+            fill = "yellow", 
+            alpha = 0.3) +
+  geom_line(data = df_w2.1,
+            aes(x = x, 
+                y = normal),
+            alpha = 0.3) +
+  geom_area(data = df_w2.3, 
+            aes(x = x,
+                y = normal), 
+            fill = "red", 
+            alpha = 0.3) +
+  geom_line(data = df_w2.3, 
+            aes(x = x, 
+                y = normal), 
+            alpha = 0.3) +
+  geom_line(data = df_w, 
+            aes(x = x,
+                y =normal),
+            linetype = 3) +
+  #ylim(c(0, 1/(2 * L) + 0.2 * 1/(2 * L))) + # Set the limits of the y axis
+  geom_hline(yintercept = 0) + # Add y axis
+  geom_vline(xintercept = 0) + # Add x axis
+  ylab("f(x)") + # Label the y axis
+  ggtitle("Unconditional distribution for wait parameter (dashed line is MIXL W)")
+```
+
+```{r ch10-mixed-mixed-logit-w2-distributions}
+# Define parameters for the distribution of willingness to pay
+# Obtain quartiles
+q <- quantile(TM$income, c(0, 0.25, 0.5, 0.75, 1))
+
+# MIX W2 First quartile
+mu_w2.1 <- (coef(mixl_w2)['wait'] + coef(mixl_w2)['wait:income'] * q[2]) *
+  (1 / coef(mixl_w2)['vcost'])
+sigma_w2.1 <- coef(mixl_w2)['sd.wait'] * sqrt((1 / coef(mixl_w2)['vcost'])^2)
+
+# MIX W2 Third quartile
+mu_w2.3 <- (coef(mixl_w2)['wait'] + coef(mixl_w2)['wait:income'] * q[4]) * 
+  (1 / coef(mixl_w2)['vcost'])
+sigma_w2.3 <- coef(mixl_w2)['sd.wait'] * sqrt((1 / coef(mixl_w2)['vcost'])^2)
+
+# MIX W
+mu_w <- coef(mixl_w)['wait'] * (1 / coef(mixl_w)['vcost'])
+sigma_w <- coef(mixl_w)['sd.wait'] * sqrt((1 / coef(mixl_w)['vcost'])^2)
+
+# Create data frames for plotting
+df_w2.1 <- data.frame(x =seq(from = -10, 
+                             to = 30,
+                             by = 0.1)) %>% 
+  mutate(normal = dnorm(x, 
+                        mean = mu_w2.1, 
+                        sd = sigma_w2.1))
+
+df_w2.3 <- data.frame(x =seq(from = -10, 
+                             to = 30, 
+                             by = 0.1)) %>% 
+  mutate(normal = dnorm(x, 
+                        mean = mu_w2.3, 
+                        sd = sigma_w2.3))
+
+df_w <- data.frame(x =seq(from = -10, 
+                          to = 30, 
+                          by = 0.1)) %>% 
+  mutate(normal = dnorm(x, mean = mu_w, sd = sigma_w))
+
+# Plot
+ggplot() +
+  geom_area(data = df_w2.1, 
+            aes(x = x,
+                y = normal), 
+            fill = "yellow", 
+            alpha = 0.3) +
+  geom_line(data = df_w2.1, 
+            aes(x = x,
+                y = normal), 
+            alpha = 0.3) +
+  geom_area(data = df_w2.3, 
+            aes(x = x,
+                y = normal), 
+            fill = "red", 
+            alpha = 0.3) +
+  geom_line(data = df_w2.3, 
+            aes(x = x,
+                y = normal), 
+            alpha = 0.3) +
+  geom_line(data = df_w, 
+            aes(x = x, 
+                y = normal), 
+            linetype = 3) +
+  #ylim(c(0, 1/(2 * L) + 0.2 * 1/(2 * L))) + # Set the limits of the y axis
+  geom_hline(yintercept = 0) + # Add y axis
+  geom_vline(xintercept = 0) + # Add x axis
+  ylab("f(x)") + # Label the y axis
+  labs(title = "Unconditional distribution for willingness to pay for wait (dashed line is MIXL W)")
+```
+
+```r
+data("ModeCanada",
+     package = "mlogit")
+```
+```r
+MC <- mlogit.data(ModeCanada %>% 
+                    filter(noalt == 4), 
+                  choice = "choice", 
+                  shape = "long",
+                  alt.levels = c("air", 
+                                 "train", 
+                                 "bus", 
+                                 "car"))
+```

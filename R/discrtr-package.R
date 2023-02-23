@@ -5,6 +5,10 @@
 ## usethis namespace: end
 NULL
 
+##############################################
+##                DATA SETS                 ##
+##############################################
+
 #' McMaster Attitudes Data Set.
 #'
 #' A data set containing information about _students_ commuting to McMaster University. Data were collected
@@ -384,3 +388,19 @@ NULL
 #' @name urban_types
 #' @usage data(urban_types)
 "urban_types"
+
+##############################################
+##                TEMPLATE                  ##
+##############################################
+
+#' discrtr template.
+#'
+#' Template for creating a computational notebook for use with Discrete Choice Analysis with R
+#'
+#' @format An R Markdown file
+#'
+#' @keywords template
+#' @name discrtr_template
+discrtr_template <- function(){
+  rmdformats::robobook()
+  }

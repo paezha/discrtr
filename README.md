@@ -6,9 +6,9 @@
 <!-- badges: start -->
 <!-- badges: end -->
 
-Package {discrtr} is a companion to the book Introduction to Discrete
-Choice Analysis with R. It includes data sets and other supporting
-materials used in the book.
+Package {discrtr} is a companion to the book [Discrete Choice Analysis
+with R](https://link.springer.com/book/10.1007/978-3-031-20719-8). It
+includes data sets and other supporting materials used in the book.
 
 ## Installation
 

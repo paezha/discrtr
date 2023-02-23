@@ -1,5 +1,5 @@
 Package: discrtr
-Title: A Companion Package for the Book Discrete Choice Analysis with 'R'
+Title: A Companion Package for the Book "Discrete Choice Analysis with 'R'"
 Version: 0.0.1
 Authors@R: 
     c(person(given = "Antonio",
@@ -12,7 +12,8 @@ Authors@R:
            role = c("aut"),
            email = "gboisjoly@polymtl.ca",
            comment = c(ORCID = "0000-0001-5375-7750")))
-Description: Provides templates and data files that complement the contents in the book.
+Description: Templates and data files to support "Discrete Choice Analysis with R",
+    Páez, A. and Boisjoly, G. (2023) <doi:10.1007/978-3-031-20719-8>.
 License: MIT + file LICENSE
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)

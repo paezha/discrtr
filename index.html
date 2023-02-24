@@ -63,25 +63,32 @@
 <div class="page-header"><h1 id="discrtr">discrtr<a class="anchor" aria-label="anchor" href="#discrtr"></a>
 </h1></div>
 <!-- badges: start -->
-<!-- badges: end -->
-<p>Package {discrtr} is a companion to the book <a href="https://link.springer.com/book/10.1007/978-3-031-20719-8" class="external-link">Discrete Choice Analysis with R</a>. It includes data sets and other supporting materials used in the book.</p>
+
+<p><a href="https://lifecycle.r-lib.org/articles/stages.html#stable" class="external-link"><img src="https://img.shields.io/badge/lifecycle-stable-green.svg" alt="Lifecycle: stable"></a></p>
+<p><a href="https://github.com/paezha/discrtr/stargazers" class="external-link"><img src="https://img.shields.io/github/stars/paezha/discrtr?style=social" alt="GitHub Stars"></a></p>
+<p><img src="https://img.shields.io/github/search/paezha/discrtr/R" alt="GitHub search hit counter: R"><br><img src="https://img.shields.io/github/search/paezha/discrtr/data" alt="GitHub search hit counter: data"></p>
+<p><img src="https://img.shields.io/github/issues/paezha/discrtr" alt="GitHub issues"><img src="https://img.shields.io/github/release-date/paezha/discrtr" alt="GitHub release"><img src="https://img.shields.io/github/commit-activity/y/paezha/discrtr" alt="GitHub commit activity"><img src="https://img.shields.io/github/last-commit/paezha/discrtr" alt="GitHub last commit"><a href="https://cran.r-project.org/package=discrtr" class="external-link"><img src="https://cranlogs.r-pkg.org/badges/discrtr"></a> <!-- badges: end --></p>
+<p>Package {discrtr} is a companion to the book <a href="https://link.springer.com/book/10.1007/978-3-031-20719-8" class="external-link">Discrete Choice Analysis with R</a>. It includes templates with code and data sets used in the book.</p>
 <div class="section level2">
 <h2 id="installation">Installation<a class="anchor" aria-label="anchor" href="#installation"></a>
 </h2>
-<p>You can install the development version of discrtr from <a href="https://github.com/" class="external-link">GitHub</a> with:</p>
+<p>Install the released version of usethis from CRAN:</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="co"># install.packages("devtools")</span></span>
-<span><span class="fu">devtools</span><span class="fu">::</span><span class="fu">install_github</span><span class="op">(</span><span class="st">"paezha/discrtr"</span><span class="op">)</span></span></code></pre></div>
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/install.packages.html" class="external-link">install.packages</a></span><span class="op">(</span><span class="st">"discrtr"</span><span class="op">)</span></span></code></pre></div>
+<p>Or you can install the development version of discrtr from <a href="https://github.com/" class="external-link">GitHub</a> with:</p>
+<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># install.packages("remotes")</span></span>
+<span><span class="fu">remotes</span><span class="fu">::</span><span class="fu">install_github</span><span class="op">(</span><span class="st">"paezha/discrtr"</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 id="example">Example<a class="anchor" aria-label="anchor" href="#example"></a>
 </h2>
-<p>One data set included in the package relates to commuting in a university setting. Analysis of this data was reported by Whalen, P’{a}ez, and Carrasco <a href="https://doi.org/10.1016/j.jtrangeo.2013.06.008" class="external-link">(2012)</a>. The wide version of the data table can be loaded as follows:</p>
-<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
+<p>One data set included in the package relates to commuting in a university setting. Analysis of this data was reported by Whalen, Páez, and Carrasco <a href="https://doi.org/10.1016/j.jtrangeo.2013.06.008" class="external-link">(2012)</a>. The wide version of the data table can be loaded as follows:</p>
+<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/paezha/discrtr" class="external-link">discrtr</a></span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/utils/data.html" class="external-link">data</a></span><span class="op">(</span><span class="st">"mc_commute_wide"</span><span class="op">)</span></span></code></pre></div>
 <p>This is a quick summary of the travel time variables in the table:</p>
-<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://dplyr.tidyverse.org" class="external-link">dplyr</a></span><span class="op">)</span></span>
 <span><span class="va">mc_commute_wide</span> <span class="op"><a href="reference/pipe.html">%&gt;%</a></span> </span>
 <span>  <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html" class="external-link">select</a></span><span class="op">(</span><span class="fu"><a href="https://tidyselect.r-lib.org/reference/starts_with.html" class="external-link">starts_with</a></span><span class="op">(</span><span class="st">"time."</span><span class="op">)</span><span class="op">)</span> <span class="op"><a href="reference/pipe.html">%&gt;%</a></span></span>
@@ -100,6 +107,7 @@
   </main><aside class="col-md-3"><div class="links">
 <h2 data-toc-skip>Links</h2>
 <ul class="list-unstyled">
+<li><a href="https://cloud.r-project.org/package=discrtr" class="external-link">View on CRAN</a></li>
 <li><a href="https://github.com/paezha/discrtr/" class="external-link">Browse source code</a></li>
 <li><a href="https://github.com/paezha/discrtr/issues" class="external-link">Report a bug</a></li>
 </ul>
@@ -129,7 +137,12 @@
 </ul>
 </div>
 
-
+<div class="dev-status">
+<h2 data-toc-skip>Dev status</h2>
+<ul class="list-unstyled">
+<li><a href="https://CRAN.R-project.org/package=discrtr" class="external-link"><img src="https://www.r-pkg.org/badges/version/discrtr" alt="CRAN status"></a></li>
+</ul>
+</div>
 
   </aside>
 </div>

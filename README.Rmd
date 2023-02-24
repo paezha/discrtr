@@ -18,22 +18,41 @@ knitr::opts_chunk$set(
 # discrtr
 
 <!-- badges: start -->
+[![CRAN status](https://www.r-pkg.org/badges/version/discrtr)](https://CRAN.R-project.org/package=discrtr)
+
+[![Lifecycle: stable](https://img.shields.io/badge/lifecycle-stable-green.svg)](https://lifecycle.r-lib.org/articles/stages.html#stable)
+
+[![GitHub Stars](https://img.shields.io/github/stars/paezha/discrtr?style=social)](https://github.com/paezha/discrtr/stargazers)
+
+![GitHub search hit counter: R](https://img.shields.io/github/search/paezha/discrtr/R)  
+![GitHub search hit counter: data](https://img.shields.io/github/search/paezha/discrtr/data)
+
+![GitHub issues](https://img.shields.io/github/issues/paezha/discrtr)
+![GitHub release](https://img.shields.io/github/release-date/paezha/discrtr)
+![GitHub commit activity](https://img.shields.io/github/commit-activity/y/paezha/discrtr)
+![GitHub last commit](https://img.shields.io/github/last-commit/paezha/discrtr)
+[![](https://cranlogs.r-pkg.org/badges/discrtr)](https://cran.r-project.org/package=discrtr)
 <!-- badges: end -->
 
-Package {discrtr} is a companion to the book [Discrete Choice Analysis with R](https://link.springer.com/book/10.1007/978-3-031-20719-8). It includes data sets and other supporting materials used in the book.
+Package {discrtr} is a companion to the book [Discrete Choice Analysis with R](https://link.springer.com/book/10.1007/978-3-031-20719-8). It includes templates with code and data sets used in the book.
 
 ## Installation
 
-You can install the development version of discrtr from [GitHub](https://github.com/) with:
+Install the released version of usethis from CRAN:
+```r
+install.packages("discrtr")
+```
+
+Or you can install the development version of discrtr from [GitHub](https://github.com/) with:
 
 ``` r
-# install.packages("devtools")
-devtools::install_github("paezha/discrtr")
+# install.packages("remotes")
+remotes::install_github("paezha/discrtr")
 ```
 
 ## Example
 
-One data set included in the package relates to commuting in a university setting. Analysis of this data was reported by Whalen, P\'{a}ez, and Carrasco [(2012)](https://doi.org/10.1016/j.jtrangeo.2013.06.008). The wide version of the data table can be loaded as follows:
+One data set included in the package relates to commuting in a university setting. Analysis of this data was reported by Whalen, Páez, and Carrasco [(2012)](https://doi.org/10.1016/j.jtrangeo.2013.06.008). The wide version of the data table can be loaded as follows:
 
 ```{r load-data}
 library(discrtr)
